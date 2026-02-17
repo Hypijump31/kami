@@ -2,7 +2,7 @@
 
 **WASM Tool Orchestrator for AI Agents**
 
-[![CI](https://github.com/YOUR_USERNAME/kami/workflows/CI/badge.svg)](https://github.com/YOUR_USERNAME/kami/actions)
+[![CI](https://github.com/Hypijump31/kami/workflows/CI/badge.svg)](https://github.com/Hypijump31/kami/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ---
@@ -58,7 +58,7 @@ kami/
 
 ```bash
 # From source
-git clone https://github.com/YOUR_USERNAME/kami.git
+git clone https://github.com/Hypijump31/kami.git
 cd kami
 cargo build --release
 
