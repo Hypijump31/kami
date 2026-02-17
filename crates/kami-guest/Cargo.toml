@@ -1,0 +1,7 @@
+[package]
+name = "kami-guest"
+version = "0.1.0"
+edition = "2021"
+description = "Guest SDK for building KAMI tools"
+
+[dependencies]

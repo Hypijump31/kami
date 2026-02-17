@@ -1,0 +1,17 @@
+[package]
+name = "kami-runtime"
+version = "0.1.0"
+edition = "2021"
+description = "Runtime orchestrator for KAMI"
+
+[dependencies]
+kami-types = { workspace = true }
+kami-engine = { workspace = true }
+kami-sandbox = { workspace = true }
+kami-registry = { workspace = true }
+wasmtime = { workspace = true }
+tokio = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+async-trait = { workspace = true }
+serde_json = { workspace = true }

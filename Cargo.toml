@@ -1,0 +1,61 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/kami-types",
+    "crates/kami-protocol",
+    "crates/kami-registry",
+    "crates/kami-engine",
+    "crates/kami-sandbox",
+    "crates/kami-runtime",
+    "crates/kami-store-sqlite",
+    "crates/kami-transport-stdio",
+    "crates/kami-config",
+    "crates/kami-cli",
+    "crates/kami-guest",
+]
+
+[workspace.dependencies]
+# WASM Runtime
+wasmtime = "27"
+wasmtime-wasi = "27"
+
+# Async
+tokio = { version = "1", features = ["full"] }
+async-trait = "0.1"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+
+# Config
+figment = { version = "0.10", features = ["toml", "env"] }
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Errors
+thiserror = "2"
+anyhow = "1"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Database
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+# SDK
+wit-bindgen = "0.36"
+
+# Internal crates
+kami-types = { path = "crates/kami-types" }
+kami-protocol = { path = "crates/kami-protocol" }
+kami-registry = { path = "crates/kami-registry" }
+kami-engine = { path = "crates/kami-engine" }
+kami-sandbox = { path = "crates/kami-sandbox" }
+kami-runtime = { path = "crates/kami-runtime" }
+kami-store-sqlite = { path = "crates/kami-store-sqlite" }
+kami-transport-stdio = { path = "crates/kami-transport-stdio" }
+kami-config = { path = "crates/kami-config" }
+kami-guest = { path = "crates/kami-guest" }

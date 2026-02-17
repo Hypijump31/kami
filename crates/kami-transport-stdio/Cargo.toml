@@ -1,0 +1,14 @@
+[package]
+name = "kami-transport-stdio"
+version = "0.1.0"
+edition = "2021"
+description = "Stdio transport adapter for MCP protocol"
+
+[dependencies]
+kami-types = { workspace = true }
+kami-protocol = { workspace = true }
+kami-runtime = { workspace = true }
+tokio = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }

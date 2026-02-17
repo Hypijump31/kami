@@ -1,0 +1,9 @@
+/// KAMI tool world definition.
+/// Tools implement the `kami-tool` world to be executable by the orchestrator.
+
+package kami:tool@0.1.0;
+
+world kami-tool {
+    import host;
+    export tool;
+}

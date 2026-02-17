@@ -1,0 +1,11 @@
+[package]
+name = "kami-registry"
+version = "0.1.0"
+edition = "2021"
+description = "Port traits for tool registry"
+
+[dependencies]
+kami-types = { workspace = true }
+async-trait = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }

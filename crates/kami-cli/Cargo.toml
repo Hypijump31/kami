@@ -1,0 +1,19 @@
+[package]
+name = "kami-cli"
+version = "0.1.0"
+edition = "2021"
+description = "CLI interface for KAMI orchestrator"
+
+[dependencies]
+kami-types = { workspace = true }
+kami-engine = { workspace = true }
+kami-sandbox = { workspace = true }
+kami-runtime = { workspace = true }
+kami-config = { workspace = true }
+kami-store-sqlite = { workspace = true }
+kami-transport-stdio = { workspace = true }
+clap = { workspace = true }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }

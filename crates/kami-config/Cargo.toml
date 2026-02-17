@@ -1,0 +1,12 @@
+[package]
+name = "kami-config"
+version = "0.1.0"
+edition = "2021"
+description = "Configuration management for KAMI"
+
+[dependencies]
+kami-types = { workspace = true }
+serde = { workspace = true }
+figment = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }

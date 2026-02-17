@@ -1,0 +1,11 @@
+[package]
+name = "kami-types"
+version = "0.1.0"
+edition = "2021"
+description = "Domain types for KAMI orchestrator"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]

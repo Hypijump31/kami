@@ -1,0 +1,16 @@
+# KAMI default configuration.
+
+[runtime]
+max_concurrent = 10
+pool_size = 5
+default_timeout_secs = 30
+
+[sandbox]
+default_max_memory_mb = 64
+default_max_fuel = 1000000
+
+[registry]
+database_path = "kami.db"
+
+[logging]
+level = "info"

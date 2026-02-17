@@ -1,0 +1,11 @@
+[package]
+name = "kami-sandbox"
+version = "0.1.0"
+edition = "2021"
+description = "Sandbox and isolation for WASM tools"
+
+[dependencies]
+kami-types = { workspace = true }
+wasmtime-wasi = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }

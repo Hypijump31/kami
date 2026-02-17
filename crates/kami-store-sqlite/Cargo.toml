@@ -1,0 +1,14 @@
+[package]
+name = "kami-store-sqlite"
+version = "0.1.0"
+edition = "2021"
+description = "SQLite adapter for tool registry"
+
+[dependencies]
+kami-types = { workspace = true }
+kami-registry = { workspace = true }
+rusqlite = { workspace = true }
+tokio = { workspace = true }
+thiserror = { workspace = true }
+async-trait = { workspace = true }
+tracing = { workspace = true }
