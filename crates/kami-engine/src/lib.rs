@@ -16,6 +16,6 @@ pub use component::{
     load_component_from_file,
 };
 pub use error::EngineError;
-pub use instance::{create_engine, create_store, InstanceConfig};
+pub use instance::{create_engine, create_store, set_epoch_deadline, InstanceConfig};
 pub use memory::MemoryStats;
 pub use state::HostState;

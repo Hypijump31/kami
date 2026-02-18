@@ -27,6 +27,9 @@ impl From<RuntimeError> for KamiError {
     fn from(e: RuntimeError) -> Self {
         let kind = match &e {
             RuntimeError::ToolNotFound { .. } => ErrorKind::NotFound,
+            RuntimeError::Sandbox(
+                kami_sandbox::SandboxError::InvalidConfig { .. },
+            ) => ErrorKind::InvalidInput,
             RuntimeError::Sandbox(_) => ErrorKind::PermissionDenied,
             RuntimeError::Timeout { .. } => ErrorKind::Timeout,
             RuntimeError::PoolExhausted => ErrorKind::ResourceExhausted,

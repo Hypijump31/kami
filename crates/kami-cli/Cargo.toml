@@ -4,16 +4,25 @@ version = "0.1.0"
 edition = "2021"
 description = "CLI interface for KAMI orchestrator"
 
+[[bin]]
+name = "kami"
+path = "src/main.rs"
+
 [dependencies]
 kami-types = { workspace = true }
 kami-engine = { workspace = true }
 kami-sandbox = { workspace = true }
 kami-runtime = { workspace = true }
 kami-config = { workspace = true }
+kami-registry = { workspace = true }
 kami-store-sqlite = { workspace = true }
 kami-transport-stdio = { workspace = true }
 clap = { workspace = true }
+serde_json = { workspace = true }
 tokio = { workspace = true }
 anyhow = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3"

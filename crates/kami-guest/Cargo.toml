@@ -5,3 +5,5 @@ edition = "2021"
 description = "Guest SDK for building KAMI tools"
 
 [dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }

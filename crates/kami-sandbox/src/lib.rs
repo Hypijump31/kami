@@ -12,7 +12,9 @@ pub mod filesystem;
 pub mod network;
 pub mod wasi;
 
-pub use capability::{CapabilityChecker, DefaultCapabilityChecker};
+pub use capability::{
+    validate_security_config, CapabilityChecker, DefaultCapabilityChecker,
+};
 pub use error::SandboxError;
 pub use filesystem::FsJail;
 pub use wasi::{build_wasi_ctx, WasiConfig};

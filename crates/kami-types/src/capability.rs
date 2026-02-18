@@ -58,6 +58,9 @@ pub struct SecurityConfig {
     /// Filesystem access level.
     #[serde(default)]
     pub fs_access: FsAccess,
+    /// Allowed environment variable names (exact match, deny-all by default).
+    #[serde(default)]
+    pub env_allow_list: Vec<String>,
     /// Resource limits.
     #[serde(flatten)]
     pub limits: ResourceLimits,
@@ -68,6 +71,7 @@ impl Default for SecurityConfig {
         Self {
             net_allow_list: Vec::new(),
             fs_access: FsAccess::None,
+            env_allow_list: Vec::new(),
             limits: ResourceLimits::default(),
         }
     }
@@ -95,6 +99,7 @@ mod tests {
     fn default_security_is_deny_all() {
         let config = SecurityConfig::default();
         assert!(config.net_allow_list.is_empty());
+        assert!(config.env_allow_list.is_empty());
         assert_eq!(config.fs_access, FsAccess::None);
     }
 

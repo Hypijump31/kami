@@ -7,8 +7,11 @@ description = "Stdio transport adapter for MCP protocol"
 [dependencies]
 kami-types = { workspace = true }
 kami-protocol = { workspace = true }
+kami-registry = { workspace = true }
 kami-runtime = { workspace = true }
+async-trait = { workspace = true }
 tokio = { workspace = true }
+serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }

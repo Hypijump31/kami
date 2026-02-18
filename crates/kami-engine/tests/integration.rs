@@ -128,7 +128,10 @@ async fn echo_component_with_json() {
 async fn executor_runs_component() {
     use kami_runtime::WasmToolExecutor;
 
-    let config = InstanceConfig::default();
+    let config = InstanceConfig {
+        epoch_interruption: true,
+        ..InstanceConfig::default()
+    };
     let engine = create_engine(&config).expect("engine");
     let linker = create_linker(&engine).expect("linker");
     let component =
@@ -138,13 +141,14 @@ async fn executor_runs_component() {
     let security = SecurityConfig::default();
 
     let result = executor
-        .execute_component(&component, r#"{"key":"value"}"#, &security, 1_000_000)
+        .execute_component(&component, r#"{"key":"value"}"#, &security)
         .await
         .expect("execution");
 
     assert!(result.success);
     assert_eq!(result.content, r#"{"key":"value"}"#);
     assert!(result.duration_ms < 5000);
+    assert!(result.fuel_consumed > 0);
 }
 
 #[tokio::test]
@@ -174,4 +178,165 @@ async fn fuel_metering_works() {
     let fuel_after = store.get_fuel().expect("get fuel");
     // Fuel should have been consumed
     assert!(fuel_after < fuel_before, "fuel should be consumed after execution");
+}
+
+// --- Phase 2: Isolation tests ---
+
+#[tokio::test]
+async fn executor_rejects_invalid_config() {
+    use kami_runtime::WasmToolExecutor;
+    use kami_types::ResourceLimits;
+
+    let config = InstanceConfig {
+        epoch_interruption: true,
+        ..InstanceConfig::default()
+    };
+    let engine = create_engine(&config).expect("engine");
+    let linker = create_linker(&engine).expect("linker");
+    let component =
+        load_component(&engine, ECHO_COMPONENT_WAT.as_bytes()).expect("component");
+
+    let executor = WasmToolExecutor::new(engine, linker);
+
+    // Zero fuel is invalid
+    let bad_security = SecurityConfig {
+        limits: ResourceLimits {
+            max_fuel: 0,
+            ..ResourceLimits::default()
+        },
+        ..SecurityConfig::default()
+    };
+
+    let result = executor
+        .execute_component(&component, "{}", &bad_security)
+        .await;
+
+    assert!(result.is_err(), "should reject zero fuel config");
+}
+
+#[tokio::test]
+async fn executor_uses_security_config_fuel() {
+    use kami_runtime::WasmToolExecutor;
+    use kami_types::ResourceLimits;
+
+    let config = InstanceConfig {
+        epoch_interruption: true,
+        ..InstanceConfig::default()
+    };
+    let engine = create_engine(&config).expect("engine");
+    let linker = create_linker(&engine).expect("linker");
+    let component =
+        load_component(&engine, ECHO_COMPONENT_WAT.as_bytes()).expect("component");
+
+    let executor = WasmToolExecutor::new(engine, linker);
+
+    // Use custom fuel limit
+    let security = SecurityConfig {
+        limits: ResourceLimits {
+            max_fuel: 500_000,
+            ..ResourceLimits::default()
+        },
+        ..SecurityConfig::default()
+    };
+
+    let result = executor
+        .execute_component(&component, "test", &security)
+        .await
+        .expect("execution");
+
+    assert!(result.success);
+    // Fuel consumed should be less than what we allocated
+    assert!(result.fuel_consumed > 0);
+    assert!(result.fuel_consumed < 500_000);
+}
+
+#[tokio::test]
+async fn executor_with_memory_limits() {
+    use kami_runtime::WasmToolExecutor;
+    use kami_types::ResourceLimits;
+
+    let config = InstanceConfig {
+        epoch_interruption: true,
+        ..InstanceConfig::default()
+    };
+    let engine = create_engine(&config).expect("engine");
+    let linker = create_linker(&engine).expect("linker");
+    let component =
+        load_component(&engine, ECHO_COMPONENT_WAT.as_bytes()).expect("component");
+
+    let executor = WasmToolExecutor::new(engine, linker);
+
+    // Restrictive but sufficient memory (16 MB)
+    let security = SecurityConfig {
+        limits: ResourceLimits {
+            max_memory_mb: 16,
+            ..ResourceLimits::default()
+        },
+        ..SecurityConfig::default()
+    };
+
+    let result = executor
+        .execute_component(&component, "memory test", &security)
+        .await
+        .expect("should succeed with 16MB");
+
+    assert!(result.success);
+    assert_eq!(result.content, "memory test");
+}
+
+#[tokio::test]
+async fn capability_checker_denies_unlisted_env() {
+    use kami_sandbox::{CapabilityChecker, DefaultCapabilityChecker};
+    use kami_types::Capability;
+
+    let checker = DefaultCapabilityChecker;
+    let config = SecurityConfig {
+        env_allow_list: vec!["LANG".to_string()],
+        ..SecurityConfig::default()
+    };
+
+    // LANG is allowed
+    assert!(checker
+        .check(&Capability::EnvVar("LANG".to_string()), &config)
+        .is_ok());
+
+    // SECRET is denied
+    assert!(checker
+        .check(&Capability::EnvVar("SECRET".to_string()), &config)
+        .is_err());
+
+    // Empty env_allow_list denies everything
+    let deny_config = SecurityConfig::default();
+    assert!(checker
+        .check(&Capability::EnvVar("HOME".to_string()), &deny_config)
+        .is_err());
+}
+
+#[tokio::test]
+async fn validate_security_config_catches_issues() {
+    use kami_sandbox::validate_security_config;
+    use kami_types::ResourceLimits;
+
+    // Default is valid
+    assert!(validate_security_config(&SecurityConfig::default()).is_ok());
+
+    // Zero memory is invalid
+    assert!(validate_security_config(&SecurityConfig {
+        limits: ResourceLimits {
+            max_memory_mb: 0,
+            ..ResourceLimits::default()
+        },
+        ..SecurityConfig::default()
+    })
+    .is_err());
+
+    // Zero timeout is invalid
+    assert!(validate_security_config(&SecurityConfig {
+        limits: ResourceLimits {
+            max_execution_ms: 0,
+            ..ResourceLimits::default()
+        },
+        ..SecurityConfig::default()
+    })
+    .is_err());
 }

@@ -3,6 +3,7 @@
 use clap::{Parser, Subcommand};
 
 mod commands;
+mod input;
 #[allow(dead_code)]
 mod output;
 
@@ -24,14 +25,24 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
-    /// Install a WASM tool.
+    /// Scaffold a new tool project.
+    Init(commands::init::InitArgs),
+    /// Validate a tool.toml manifest without installing.
+    Validate(commands::validate::ValidateArgs),
+    /// Install a WASM tool into the registry.
     Install(commands::install::InstallArgs),
-    /// Run a WASM component file.
-    Run(commands::run::RunArgs),
+    /// Uninstall a tool from the registry.
+    Uninstall(commands::uninstall::UninstallArgs),
     /// List installed tools.
     List(commands::list::ListArgs),
     /// Inspect a tool's manifest.
     Inspect(commands::inspect::InspectArgs),
+    /// Run a WASM component file directly (dev mode).
+    Run(commands::run::RunArgs),
+    /// Execute a registered tool by ID.
+    Exec(commands::exec::ExecArgs),
+    /// Start MCP server over stdio.
+    Serve(commands::serve::ServeArgs),
 }
 
 fn main() -> anyhow::Result<()> {
@@ -50,9 +61,14 @@ fn main() -> anyhow::Result<()> {
     tracing::debug!("KAMI starting with config: {:?}", cli.config);
 
     match &cli.command {
+        Commands::Init(args) => commands::init::execute(args),
+        Commands::Validate(args) => commands::validate::execute(args),
         Commands::Install(args) => commands::install::execute(args),
-        Commands::Run(args) => commands::run::execute(args),
+        Commands::Uninstall(args) => commands::uninstall::execute(args),
         Commands::List(args) => commands::list::execute(args),
         Commands::Inspect(args) => commands::inspect::execute(args),
+        Commands::Run(args) => commands::run::execute(args),
+        Commands::Exec(args) => commands::exec::execute(args),
+        Commands::Serve(args) => commands::serve::execute(args),
     }
 }

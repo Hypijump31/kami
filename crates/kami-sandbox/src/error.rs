@@ -18,6 +18,9 @@ pub enum SandboxError {
     /// WASI context build failure.
     #[error("failed to build WASI context: {reason}")]
     WasiBuild { reason: String },
+    /// Invalid security configuration.
+    #[error("invalid security config: {reason}")]
+    InvalidConfig { reason: String },
 }
 
 impl From<SandboxError> for KamiError {
@@ -27,6 +30,7 @@ impl From<SandboxError> for KamiError {
             | SandboxError::NetworkDenied { .. }
             | SandboxError::FsDenied { .. } => ErrorKind::PermissionDenied,
             SandboxError::WasiBuild { .. } => ErrorKind::Internal,
+            SandboxError::InvalidConfig { .. } => ErrorKind::InvalidInput,
         };
         KamiError::new(kind, e.to_string())
     }

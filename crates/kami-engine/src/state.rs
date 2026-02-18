@@ -1,13 +1,16 @@
 //! Host state for WASM component instances.
 //!
 //! `HostState` is the `T` in `Store<T>` and must implement `WasiView`.
-//! It holds the WASI context, resource table, and per-instance metadata.
+//! It holds the WASI context, resource table, store limits, and
+//! per-instance metadata.
 
 use wasmtime::component::ResourceTable;
+use wasmtime::{StoreLimits, StoreLimitsBuilder};
 use wasmtime_wasi::{WasiCtx, WasiView};
 
 /// Per-instance host state passed to `Store<HostState>`.
 ///
+/// Contains the `StoreLimits` so that `Store::limiter()` can reference it.
 /// Extensible: future phases will add fields for capability tracking,
 /// metrics, and host function state.
 pub struct HostState {
@@ -15,16 +18,36 @@ pub struct HostState {
     wasi_ctx: WasiCtx,
     /// Resource table for Component Model resources.
     resource_table: ResourceTable,
+    /// Wasmtime resource limiter (memory, tables, instances).
+    pub(crate) store_limits: StoreLimits,
     /// Fuel consumed so far (for reporting).
     fuel_consumed: u64,
 }
 
 impl HostState {
-    /// Creates a new host state from a pre-built `WasiCtx`.
+    /// Creates a new host state from a pre-built `WasiCtx` with default
+    /// resource limits (no memory cap).
     pub fn new(wasi_ctx: WasiCtx) -> Self {
         Self {
             wasi_ctx,
             resource_table: ResourceTable::new(),
+            store_limits: StoreLimitsBuilder::new().build(),
+            fuel_consumed: 0,
+        }
+    }
+
+    /// Creates a new host state with explicit memory limits.
+    ///
+    /// `max_memory_bytes` caps each linear memory allocation.
+    pub fn with_limits(wasi_ctx: WasiCtx, max_memory_bytes: usize) -> Self {
+        let store_limits = StoreLimitsBuilder::new()
+            .memory_size(max_memory_bytes)
+            .trap_on_grow_failure(true)
+            .build();
+        Self {
+            wasi_ctx,
+            resource_table: ResourceTable::new(),
+            store_limits,
             fuel_consumed: 0,
         }
     }
@@ -59,6 +82,13 @@ mod tests {
     fn host_state_creation() {
         let ctx = WasiCtxBuilder::new().build();
         let state = HostState::new(ctx);
+        assert_eq!(state.fuel_consumed(), 0);
+    }
+
+    #[test]
+    fn host_state_with_memory_limits() {
+        let ctx = WasiCtxBuilder::new().build();
+        let state = HostState::with_limits(ctx, 32 * 1024 * 1024);
         assert_eq!(state.fuel_consumed(), 0);
     }
 }
