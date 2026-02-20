@@ -4,10 +4,8 @@ use std::path::Path;
 
 use clap::Args;
 
-use kami_engine::{
-    create_engine, create_linker, load_component_from_file, InstanceConfig,
-};
-use kami_runtime::WasmToolExecutor;
+use kami_engine::{create_engine, create_linker, load_component_from_file, InstanceConfig};
+use kami_runtime::{ToolExecutor, WasmToolExecutor};
 use kami_types::{ResourceLimits, SecurityConfig};
 
 use crate::input;
@@ -35,19 +33,13 @@ pub struct RunArgs {
 }
 
 /// Executes the run command using the async runtime.
-pub fn execute(args: &RunArgs) -> anyhow::Result<()> {
-    let rt = tokio::runtime::Runtime::new()?;
-    rt.block_on(run_async(args))
-}
-
-async fn run_async(args: &RunArgs) -> anyhow::Result<()> {
+pub async fn execute(args: &RunArgs) -> anyhow::Result<()> {
     let wasm_path = Path::new(&args.wasm_file);
     if !wasm_path.exists() {
         anyhow::bail!("WASM file not found: {}", args.wasm_file);
     }
 
-    let resolved_input =
-        input::resolve_input(&args.input, args.input_file.as_deref())?;
+    let resolved_input = input::resolve_input(&args.input, args.input_file.as_deref())?;
 
     tracing::info!(path = %args.wasm_file, "Loading WASM component");
 
@@ -84,7 +76,7 @@ async fn run_async(args: &RunArgs) -> anyhow::Result<()> {
     );
 
     let result = executor
-        .execute_component(&component, &resolved_input, &security)
+        .execute(&component, &resolved_input, &security)
         .await
         .map_err(|e| anyhow::anyhow!("execution failed: {e}"))?;
 

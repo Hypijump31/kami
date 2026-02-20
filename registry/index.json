@@ -1,0 +1,26 @@
+[
+  {
+    "id": "dev.kami.echo",
+    "name": "echo",
+    "version": "1.0.0",
+    "description": "Echoes back the input unchanged",
+    "source": "Hypijump31/kami-echo@v1.0.0",
+    "wasm_sha256": "placeholder"
+  },
+  {
+    "id": "dev.kami.hello-world",
+    "name": "hello-world",
+    "version": "1.0.0",
+    "description": "Minimal greeting tool",
+    "source": "Hypijump31/kami-hello-world@v1.0.0",
+    "wasm_sha256": "placeholder"
+  },
+  {
+    "id": "dev.kami.json-transform",
+    "name": "json-transform",
+    "version": "1.0.0",
+    "description": "Pick, flatten, or count JSON keys",
+    "source": "Hypijump31/kami-json-transform@v1.0.0",
+    "wasm_sha256": "placeholder"
+  }
+]

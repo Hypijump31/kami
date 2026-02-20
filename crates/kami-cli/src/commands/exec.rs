@@ -3,16 +3,11 @@
 //! Executes a tool by its registry ID using the full runtime pipeline:
 //! resolution, caching, scheduling, and sandboxed execution.
 
-use std::sync::Arc;
-
 use clap::Args;
 
-use kami_runtime::{KamiRuntime, RuntimeConfig};
-use kami_store_sqlite::SqliteToolRepository;
-use kami_types::ToolId;
+use kami_types::{DiagnosticError, ToolId};
 
-use crate::input;
-use crate::output;
+use crate::{input, output, shared};
 
 /// Execute a registered tool by its ID.
 #[derive(Debug, Args)]
@@ -37,32 +32,13 @@ pub struct ExecArgs {
 }
 
 /// Executes the exec command.
-pub fn execute(args: &ExecArgs) -> anyhow::Result<()> {
-    let rt = tokio::runtime::Runtime::new()?;
-    rt.block_on(exec_async(args))
-}
+pub async fn execute(args: &ExecArgs) -> anyhow::Result<()> {
+    let resolved_input = input::resolve_input(&args.input, args.input_file.as_deref())?;
 
-async fn exec_async(args: &ExecArgs) -> anyhow::Result<()> {
-    let resolved_input =
-        input::resolve_input(&args.input, args.input_file.as_deref())?;
+    let repo = shared::open_repository(&args.db)?;
+    let tool_id = ToolId::new(&args.tool).map_err(|e| anyhow::anyhow!("invalid tool ID: {e}"))?;
 
-    let db_path =
-        args.db.clone().unwrap_or_else(output::default_db_path);
-
-    let repo = SqliteToolRepository::open(&db_path)
-        .map_err(|e| anyhow::anyhow!("registry error: {e}"))?;
-
-    let tool_id = ToolId::new(&args.tool)
-        .map_err(|e| anyhow::anyhow!("invalid tool ID: {e}"))?;
-
-    let config = RuntimeConfig {
-        cache_size: args.cache_size,
-        max_concurrent: args.concurrency,
-        epoch_interruption: true,
-    };
-
-    let runtime = KamiRuntime::new(config, Arc::new(repo))
-        .map_err(|e| anyhow::anyhow!("runtime init error: {e}"))?;
+    let runtime = shared::create_runtime(repo, args.concurrency, args.cache_size)?;
 
     tracing::info!(
         tool = %args.tool,
@@ -73,7 +49,15 @@ async fn exec_async(args: &ExecArgs) -> anyhow::Result<()> {
     let result = runtime
         .execute(&tool_id, &resolved_input)
         .await
-        .map_err(|e| anyhow::anyhow!("execution failed: {e}"))?;
+        .map_err(|e| {
+            if let Some(hint) = e.hint() {
+                eprintln!("\n  Cause: {hint}");
+            }
+            if let Some(fix) = e.fix() {
+                eprintln!("  Fix:   {fix}\n");
+            }
+            anyhow::anyhow!("execution failed: {e}")
+        })?;
 
     if result.success {
         println!("{}", result.content);

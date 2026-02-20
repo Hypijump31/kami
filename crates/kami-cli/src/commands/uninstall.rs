@@ -4,11 +4,9 @@
 
 use clap::Args;
 
-use kami_registry::ToolRepository;
-use kami_store_sqlite::SqliteToolRepository;
 use kami_types::ToolId;
 
-use crate::output;
+use crate::{output, shared};
 
 /// Uninstall a tool from the registry.
 #[derive(Debug, Args)]
@@ -21,20 +19,10 @@ pub struct UninstallArgs {
 }
 
 /// Executes the uninstall command.
-pub fn execute(args: &UninstallArgs) -> anyhow::Result<()> {
-    let rt = tokio::runtime::Runtime::new()?;
-    rt.block_on(uninstall_async(args))
-}
+pub async fn execute(args: &UninstallArgs) -> anyhow::Result<()> {
+    let tool_id = ToolId::new(&args.tool).map_err(|e| anyhow::anyhow!("invalid tool ID: {e}"))?;
 
-async fn uninstall_async(args: &UninstallArgs) -> anyhow::Result<()> {
-    let tool_id = ToolId::new(&args.tool)
-        .map_err(|e| anyhow::anyhow!("invalid tool ID: {e}"))?;
-
-    let db_path =
-        args.db.clone().unwrap_or_else(output::default_db_path);
-
-    let repo = SqliteToolRepository::open(&db_path)
-        .map_err(|e| anyhow::anyhow!("registry error: {e}"))?;
+    let repo = shared::open_repository(&args.db)?;
 
     // Check if tool exists before deleting
     let existing = repo
@@ -59,4 +47,30 @@ async fn uninstall_async(args: &UninstallArgs) -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn uninstall_missing_tool_fails() {
+        let dir = tempfile::tempdir().expect("tmp");
+        let db = dir.path().join("uni.db").to_str().expect("u").to_string();
+        let args = UninstallArgs {
+            tool: "dev.test.nope".into(),
+            db: Some(db),
+        };
+        assert!(execute(&args).await.is_err());
+    }
+
+    #[tokio::test]
+    async fn uninstall_invalid_id_fails() {
+        let dir = tempfile::tempdir().expect("tmp");
+        let db = dir.path().join("uni2.db").to_str().expect("u").to_string();
+        let args = UninstallArgs {
+            tool: "bad".into(),
+            db: Some(db),
+        };
+        assert!(execute(&args).await.is_err());
+    }
 }

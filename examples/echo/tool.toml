@@ -1,0 +1,19 @@
+[tool]
+id = "dev.kami.echo"
+name = "echo"
+version = "0.1.0"
+wasm = "target/wasm32-wasip2/release/echo.wasm"
+
+[mcp]
+description = "Echoes back the JSON input unchanged"
+
+[[mcp.arguments]]
+name = "input"
+type = "string"
+description = "Any JSON value to echo back"
+required = true
+
+[security]
+fs_access = "none"
+max_memory_mb = 16
+max_execution_ms = 1000

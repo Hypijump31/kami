@@ -9,10 +9,12 @@ members = [
     "crates/kami-runtime",
     "crates/kami-store-sqlite",
     "crates/kami-transport-stdio",
+    "crates/kami-transport-http",
     "crates/kami-config",
     "crates/kami-cli",
     "crates/kami-guest",
 ]
+exclude = ["tests/fixtures/echo-tool"]
 
 [workspace.dependencies]
 # WASM Runtime
@@ -40,13 +42,37 @@ anyhow = "1"
 
 # Logging
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# HTTP transport
+axum = "0.7"
 
 # Database
 rusqlite = { version = "0.32", features = ["bundled"] }
 
+# Cryptography
+sha2 = "0.10"
+hex = "0.4"
+ed25519-dalek = { version = "2", features = ["std", "rand_core"] }
+rand = "0.8"
+
+# HTTP client
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "stream"] }
+
+# Archive extraction
+zip = "2"
+
+# Filesystem watcher
+notify = "6.1"
+
+# Property-based testing
+proptest = "1"
+
+# Benchmarks
+criterion = { version = "0.5", features = ["html_reports"] }
+
 # SDK
-wit-bindgen = "0.36"
+wit-bindgen = "0.51"
 
 # Internal crates
 kami-types = { path = "crates/kami-types" }
@@ -57,5 +83,6 @@ kami-sandbox = { path = "crates/kami-sandbox" }
 kami-runtime = { path = "crates/kami-runtime" }
 kami-store-sqlite = { path = "crates/kami-store-sqlite" }
 kami-transport-stdio = { path = "crates/kami-transport-stdio" }
+kami-transport-http = { path = "crates/kami-transport-http" }
 kami-config = { path = "crates/kami-config" }
 kami-guest = { path = "crates/kami-guest" }

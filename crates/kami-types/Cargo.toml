@@ -7,6 +7,5 @@ description = "Domain types for KAMI orchestrator"
 [dependencies]
 serde = { workspace = true }
 serde_json = { workspace = true }
-toml = { workspace = true }
 
 [dev-dependencies]

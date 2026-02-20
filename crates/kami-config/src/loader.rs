@@ -31,3 +31,42 @@ pub fn load_config(config_path: Option<&str>) -> Result<KamiConfig, ConfigError>
         .extract()
         .map_err(|e| ConfigError::Load(e.to_string()))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn load_config_no_path_succeeds() {
+        let config = load_config(None);
+        assert!(config.is_ok(), "default config should load without error");
+    }
+
+    #[test]
+    fn load_config_default_values() {
+        let config = load_config(None).expect("should load");
+        assert_eq!(config.runtime.max_concurrent, 10);
+        assert_eq!(config.runtime.pool_size, 5);
+        assert_eq!(config.runtime.default_timeout_secs, 30);
+        assert_eq!(config.sandbox.default_max_memory_mb, 64);
+        assert_eq!(config.sandbox.default_max_fuel, 1_000_000);
+        assert_eq!(config.registry.database_path, "kami.db");
+        assert_eq!(config.logging.level, "info");
+    }
+
+    #[test]
+    fn load_config_nonexistent_file_falls_back_to_defaults() {
+        // figment::Toml::file ignores missing files (optional by default)
+        let config = load_config(Some("/nonexistent/path/kami.toml"));
+        assert!(
+            config.is_ok(),
+            "missing config file should fall back to defaults"
+        );
+    }
+
+    #[test]
+    fn runtime_timeout_returns_duration() {
+        let config = load_config(None).expect("should load");
+        assert_eq!(config.runtime.timeout().as_secs(), 30);
+    }
+}

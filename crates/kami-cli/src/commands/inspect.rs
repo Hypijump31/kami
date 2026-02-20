@@ -4,11 +4,9 @@
 
 use clap::Args;
 
-use kami_registry::ToolRepository;
-use kami_store_sqlite::SqliteToolRepository;
 use kami_types::ToolId;
 
-use crate::output;
+use crate::{output, shared};
 
 /// Inspect a tool's manifest and capabilities.
 #[derive(Debug, Args)]
@@ -21,20 +19,10 @@ pub struct InspectArgs {
 }
 
 /// Executes the inspect command.
-pub fn execute(args: &InspectArgs) -> anyhow::Result<()> {
-    let rt = tokio::runtime::Runtime::new()?;
-    rt.block_on(inspect_async(args))
-}
+pub async fn execute(args: &InspectArgs) -> anyhow::Result<()> {
+    let repo = shared::open_repository(&args.db)?;
 
-async fn inspect_async(args: &InspectArgs) -> anyhow::Result<()> {
-    let db_path =
-        args.db.clone().unwrap_or_else(output::default_db_path);
-
-    let repo = SqliteToolRepository::open(&db_path)
-        .map_err(|e| anyhow::anyhow!("registry error: {e}"))?;
-
-    let id = ToolId::new(&args.tool)
-        .map_err(|e| anyhow::anyhow!("invalid tool ID: {e}"))?;
+    let id = ToolId::new(&args.tool).map_err(|e| anyhow::anyhow!("invalid tool ID: {e}"))?;
 
     let tool = repo
         .find_by_id(&id)
@@ -44,10 +32,7 @@ async fn inspect_async(args: &InspectArgs) -> anyhow::Result<()> {
     let tool = match tool {
         Some(t) => t,
         None => {
-            output::print_error(&format!(
-                "tool not found: {}",
-                args.tool
-            ));
+            output::print_error(&format!("tool not found: {}", args.tool));
             return Ok(());
         }
     };
@@ -86,8 +71,7 @@ async fn inspect_async(args: &InspectArgs) -> anyhow::Result<()> {
     if !m.arguments.is_empty() {
         println!("\nArguments:");
         for arg in &m.arguments {
-            let req =
-                if arg.required { "required" } else { "optional" };
+            let req = if arg.required { "required" } else { "optional" };
             println!(
                 "  {} ({}, {}): {}",
                 arg.name, arg.arg_type, req, arg.description
@@ -96,4 +80,65 @@ async fn inspect_async(args: &InspectArgs) -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn inspect_missing_tool() {
+        let dir = tempfile::tempdir().expect("tmp");
+        let db = dir.path().join("insp.db").to_str().expect("u").to_string();
+        let args = InspectArgs {
+            tool: "dev.test.missing".into(),
+            db: Some(db),
+        };
+        // Returns Ok but prints "tool not found"
+        assert!(execute(&args).await.is_ok());
+    }
+
+    #[tokio::test]
+    async fn inspect_invalid_id() {
+        let dir = tempfile::tempdir().expect("tmp");
+        let db = dir.path().join("insp2.db").to_str().expect("u").to_string();
+        let args = InspectArgs {
+            tool: "bad".into(),
+            db: Some(db),
+        };
+        assert!(execute(&args).await.is_err());
+    }
+
+    #[tokio::test]
+    async fn inspect_existing_tool() {
+        use kami_types::*;
+        let dir = tempfile::tempdir().expect("tmp");
+        let db_path = dir.path().join("insp3.db");
+        let db = db_path.to_str().expect("u").to_string();
+        let repo = crate::shared::open_repository(&Some(db.clone())).expect("r");
+        let tool = Tool {
+            manifest: ToolManifest {
+                id: ToolId::new("dev.t.x").expect("id"),
+                name: "x".into(),
+                version: ToolVersion::new(1, 0, 0),
+                wasm: "x.wasm".into(),
+                description: "x tool".into(),
+                arguments: vec![],
+                security: SecurityConfig::default(),
+                wasm_sha256: None,
+                signature: None,
+                signer_public_key: None,
+            },
+            install_path: "/x".into(),
+            enabled: true,
+            pinned_version: None,
+            updated_at: None,
+        };
+        repo.insert(&tool).await.expect("ins");
+        let args = InspectArgs {
+            tool: "dev.t.x".into(),
+            db: Some(db),
+        };
+        assert!(execute(&args).await.is_ok());
+    }
 }

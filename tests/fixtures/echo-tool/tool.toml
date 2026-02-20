@@ -1,0 +1,20 @@
+[tool]
+id = "dev.kami.echo"
+name = "echo"
+version = "1.0.0"
+wasm = "echo_tool.wasm"
+
+[mcp]
+description = "Echoes input back unchanged"
+
+[[mcp.arguments]]
+name = "input"
+type = "string"
+description = "Text to echo back"
+required = true
+
+[security]
+net_allow_list = []
+fs_access = "none"
+max_memory_mb = 16
+max_execution_ms = 5000

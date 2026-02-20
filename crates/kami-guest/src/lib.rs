@@ -26,4 +26,7 @@
 pub mod abi;
 pub mod macros;
 
+#[cfg(feature = "component-model")]
+pub mod bindings;
+
 pub use abi::{error_result, parse_input, text_result, to_output, ToolMetadata};

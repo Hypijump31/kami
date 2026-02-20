@@ -4,7 +4,7 @@ use kami_registry::RepositoryError;
 use rusqlite::Connection;
 
 /// Current schema version.
-const SCHEMA_VERSION: u32 = 1;
+const SCHEMA_VERSION: u32 = 4;
 
 /// Runs all pending migrations on the database.
 pub fn run_migrations(conn: &Connection) -> Result<(), RepositoryError> {
@@ -13,9 +13,48 @@ pub fn run_migrations(conn: &Connection) -> Result<(), RepositoryError> {
     if current < 1 {
         migrate_v1(conn)?;
     }
+    if current < 2 {
+        migrate_v2(conn)?;
+    }
+    if current < 3 {
+        migrate_v3(conn)?;
+    }
+    if current < 4 {
+        migrate_v4(conn)?;
+    }
 
     set_schema_version(conn, SCHEMA_VERSION)?;
     Ok(())
+}
+
+/// Adds the `wasm_sha256` column for WASM integrity verification (v2).
+fn migrate_v2(conn: &Connection) -> Result<(), RepositoryError> {
+    conn.execute_batch("ALTER TABLE tools ADD COLUMN wasm_sha256 TEXT;")
+        .map_err(|e| RepositoryError::Storage {
+            message: format!("migration v2 failed: {e}"),
+        })
+}
+
+/// Adds versioning columns for update & pin support (v3).
+fn migrate_v3(conn: &Connection) -> Result<(), RepositoryError> {
+    conn.execute_batch(
+        "ALTER TABLE tools ADD COLUMN pinned_version TEXT;
+         ALTER TABLE tools ADD COLUMN updated_at TEXT;",
+    )
+    .map_err(|e| RepositoryError::Storage {
+        message: format!("migration v3 failed: {e}"),
+    })
+}
+
+/// Adds cryptographic signature columns for plugin signing (v4).
+fn migrate_v4(conn: &Connection) -> Result<(), RepositoryError> {
+    conn.execute_batch(
+        "ALTER TABLE tools ADD COLUMN signature TEXT;
+         ALTER TABLE tools ADD COLUMN signer_public_key TEXT;",
+    )
+    .map_err(|e| RepositoryError::Storage {
+        message: format!("migration v4 failed: {e}"),
+    })
 }
 
 /// Creates the initial schema (v1).
@@ -43,9 +82,7 @@ fn migrate_v1(conn: &Connection) -> Result<(), RepositoryError> {
 }
 
 /// Reads the current schema version from PRAGMA user_version.
-fn get_schema_version(
-    conn: &Connection,
-) -> Result<u32, RepositoryError> {
+fn get_schema_version(conn: &Connection) -> Result<u32, RepositoryError> {
     conn.query_row("PRAGMA user_version", [], |row| row.get(0))
         .map_err(|e| RepositoryError::Storage {
             message: format!("failed to read schema version: {e}"),
@@ -53,10 +90,7 @@ fn get_schema_version(
 }
 
 /// Sets the schema version via PRAGMA user_version.
-fn set_schema_version(
-    conn: &Connection,
-    version: u32,
-) -> Result<(), RepositoryError> {
+fn set_schema_version(conn: &Connection, version: u32) -> Result<(), RepositoryError> {
     conn.pragma_update(None, "user_version", version)
         .map_err(|e| RepositoryError::Storage {
             message: format!("failed to set schema version: {e}"),
@@ -69,8 +103,7 @@ mod tests {
 
     #[test]
     fn migrations_run_on_fresh_db() {
-        let conn = Connection::open_in_memory()
-            .expect("in-memory db");
+        let conn = Connection::open_in_memory().expect("in-memory db");
         run_migrations(&conn).expect("migrations should succeed");
 
         let version = get_schema_version(&conn).expect("version");
@@ -79,8 +112,7 @@ mod tests {
 
     #[test]
     fn migrations_are_idempotent() {
-        let conn = Connection::open_in_memory()
-            .expect("in-memory db");
+        let conn = Connection::open_in_memory().expect("in-memory db");
         run_migrations(&conn).expect("first run");
         run_migrations(&conn).expect("second run should also succeed");
     }

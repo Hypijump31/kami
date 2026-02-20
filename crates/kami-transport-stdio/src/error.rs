@@ -33,3 +33,26 @@ impl From<TransportError> for KamiError {
         KamiError::new(kind, e.to_string())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_error_converts_to_invalid_input() {
+        let err: KamiError = TransportError::Parse("bad json".into()).into();
+        assert_eq!(err.kind, ErrorKind::InvalidInput);
+    }
+
+    #[test]
+    fn connection_closed_converts_to_internal() {
+        let err: KamiError = TransportError::ConnectionClosed.into();
+        assert_eq!(err.kind, ErrorKind::Internal);
+    }
+
+    #[test]
+    fn dispatch_error_converts_to_internal() {
+        let err: KamiError = TransportError::Dispatch("fail".into()).into();
+        assert_eq!(err.kind, ErrorKind::Internal);
+    }
+}

@@ -116,8 +116,7 @@ mod tests {
         let engine = create_engine(&config).expect("engine creation");
         let ctx = WasiCtxBuilder::new().build();
         let state = HostState::new(ctx);
-        let mut store =
-            create_store(&engine, state, 500_000).expect("store creation");
+        let mut store = create_store(&engine, state, 500_000).expect("store creation");
         set_epoch_deadline(&mut store, 1);
     }
 }

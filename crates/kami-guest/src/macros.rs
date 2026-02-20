@@ -2,6 +2,11 @@
 //!
 //! Provides `kami_tool!` to generate the handler wiring and metadata
 //! for tools targeting the KAMI runtime.
+//!
+//! Two compilation modes are supported:
+//! - **Native** (default): generates test-friendly `__kami_run` / `__kami_describe`
+//! - **Component Model** (`component-model` feature + wasm32 target):
+//!   additionally generates `impl Guest` + `export!()` from WIT bindings
 
 /// Generates the KAMI tool entry points from a handler function.
 ///
@@ -9,9 +14,9 @@
 /// - A `__kami_run` function that delegates to your handler
 /// - A `__kami_describe` function that returns tool metadata JSON
 ///
-/// When compiling to WASM with `wit-bindgen`, these are wired to the
-/// Component Model exports. For native testing, they serve as the
-/// canonical entry points.
+/// When the `component-model` feature is active and targeting wasm32,
+/// it also generates the Component Model `impl Guest` and `export!` glue
+/// from the WIT interface definitions.
 ///
 /// # Usage
 ///

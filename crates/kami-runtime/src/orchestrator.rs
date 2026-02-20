@@ -1,71 +1,34 @@
-//! Top-level runtime orchestrator.
-//!
-//! `KamiRuntime` is the main entry point for tool execution.
-//! It combines tool resolution, scheduling, and sandboxed execution
-//! into a single high-level API.
+//! Top-level runtime orchestrator — combines resolution, scheduling, and WASM execution.
 
 use std::sync::Arc;
-
-use tracing::{info, warn};
-use wasmtime::component::Linker;
-use wasmtime::Engine;
 
 use kami_engine::{create_engine, create_linker, HostState, InstanceConfig};
 use kami_registry::ToolRepository;
 use kami_types::ToolId;
+use tracing::{info, warn};
+use wasmtime::{component::Linker, Engine};
 
-use crate::cache::ComponentCache;
-use crate::error::RuntimeError;
-use crate::executor::{ExecutionResult, WasmToolExecutor};
-use crate::pool::PoolConfig;
-use crate::resolver::ToolResolver;
 use crate::scheduler::{Scheduler, SchedulerConfig};
-
-/// Configuration for the KAMI runtime.
-#[derive(Debug, Clone)]
-pub struct RuntimeConfig {
-    /// Component cache size.
-    pub cache_size: usize,
-    /// Scheduler concurrency limit.
-    pub max_concurrent: usize,
-    /// Enable epoch interruption for timeout.
-    pub epoch_interruption: bool,
-}
-
-impl Default for RuntimeConfig {
-    fn default() -> Self {
-        Self {
-            cache_size: 32,
-            max_concurrent: 4,
-            epoch_interruption: true,
-        }
-    }
-}
-
-impl From<&PoolConfig> for RuntimeConfig {
-    fn from(pool: &PoolConfig) -> Self {
-        Self {
-            cache_size: pool.max_size,
-            ..Self::default()
-        }
-    }
-}
+use crate::types::{ExecutionResult, ToolExecutor};
+use crate::{cache::ComponentCache, error::RuntimeError, executor::WasmToolExecutor};
+use crate::{metrics::ExecutionMetrics, resolver::ToolResolver, runtime_config::RuntimeConfig};
 
 /// Top-level runtime orchestrator.
 ///
-/// Provides a simple `execute(tool_id, input)` API that handles:
-/// - Tool resolution from the registry
-/// - Component compilation and caching
-/// - Concurrency control via the scheduler
-/// - Sandboxed execution with full isolation
+/// Combines tool resolution, scheduling, and sandboxed WASM execution.
+/// Use `metrics()` to read live atomic counters.
 pub struct KamiRuntime {
     executor: WasmToolExecutor,
     resolver: ToolResolver,
     scheduler: Scheduler,
+    metrics: Arc<ExecutionMetrics>,
 }
 
 impl KamiRuntime {
     /// Creates a new runtime with the given configuration and repository.
+    ///
+    /// # Errors
+    /// Returns `RuntimeError` if the engine or linker cannot be created.
     pub fn new(
         config: RuntimeConfig,
         repository: Arc<dyn ToolRepository>,
@@ -80,17 +43,16 @@ impl KamiRuntime {
         let scheduler = Scheduler::new(&SchedulerConfig {
             max_concurrent: config.max_concurrent,
         });
-
+        let metrics = ExecutionMetrics::new_shared();
         Ok(Self {
             executor: WasmToolExecutor::new(engine.clone(), linker),
             resolver: ToolResolver::new(engine, cache, repository),
             scheduler,
+            metrics,
         })
     }
 
     /// Creates a runtime from an existing engine and linker.
-    ///
-    /// Useful when the caller needs control over engine configuration.
     pub fn with_engine(
         engine: Engine,
         linker: Linker<HostState>,
@@ -98,58 +60,71 @@ impl KamiRuntime {
         repository: Arc<dyn ToolRepository>,
     ) -> Self {
         let cache = ComponentCache::new(config.cache_size);
-        let scheduler = Scheduler::new(&SchedulerConfig {
+        let scheduler_config = SchedulerConfig {
             max_concurrent: config.max_concurrent,
-        });
-
+        };
+        let metrics = ExecutionMetrics::new_shared();
         Self {
             executor: WasmToolExecutor::new(engine.clone(), linker),
             resolver: ToolResolver::new(engine, cache, repository),
-            scheduler,
+            scheduler: Scheduler::new(&scheduler_config),
+            metrics,
         }
     }
 
     /// Executes a tool by its ID with the given JSON input.
     ///
-    /// Full pipeline:
-    /// 1. Acquire scheduler permit (concurrency control)
-    /// 2. Resolve tool from registry (with caching)
-    /// 3. Execute with full sandbox isolation
+    /// # Errors
+    /// Returns `RuntimeError::ToolNotFound` or `RuntimeError::PoolExhausted`.
+    #[tracing::instrument(skip(self, input), fields(tool_id = %tool_id))]
     pub async fn execute(
         &self,
         tool_id: &ToolId,
         input: &str,
     ) -> Result<ExecutionResult, RuntimeError> {
         info!(%tool_id, "executing tool");
+        self.metrics.record_attempt();
 
-        // 1. Acquire concurrency permit
-        let _permit = self.scheduler.acquire().await?;
+        if self.resolver.cache().get(tool_id).await.is_some() {
+            self.metrics.record_cache_hit();
+        } else {
+            self.metrics.record_cache_miss();
+        }
 
-        // 2. Resolve tool (cache or compile)
-        let cached = self.resolver.resolve(tool_id).await?;
+        let _permit = self
+            .scheduler
+            .acquire()
+            .await
+            .inspect_err(|_| self.metrics.record_failure())?;
+        let cached = self
+            .resolver
+            .resolve(tool_id)
+            .await
+            .inspect_err(|_| self.metrics.record_failure())?;
 
-        // 3. Execute with isolation
         let result = self
             .executor
-            .execute_component(
-                &cached.component,
-                input,
-                &cached.security,
-            )
+            .execute(&cached.component, input, &cached.security)
             .await;
 
         match &result {
-            Ok(r) => info!(
-                %tool_id,
-                success = r.success,
-                duration_ms = r.duration_ms,
-                fuel_consumed = r.fuel_consumed,
-                "execution complete"
-            ),
-            Err(e) => warn!(%tool_id, error = %e, "execution failed"),
+            Ok(r) => {
+                self.metrics.record_success(r.fuel_consumed);
+                info!(%tool_id, success = r.success, duration_ms = r.duration_ms,
+                    fuel = r.fuel_consumed, "execution complete");
+            }
+            Err(e) => {
+                self.metrics.record_failure();
+                warn!(%tool_id, error = %e, "execution failed");
+            }
         }
-
         result
+    }
+
+    /// Gracefully shuts down the runtime by draining all in-flight executions.
+    pub async fn shutdown(&self) {
+        self.scheduler.drain().await;
+        info!("runtime shutdown complete");
     }
 
     /// Invalidates the component cache for a specific tool.
@@ -157,17 +132,15 @@ impl KamiRuntime {
         self.resolver.invalidate(tool_id).await;
     }
 
-    /// Returns the underlying executor for direct component execution.
-    pub fn executor(&self) -> &WasmToolExecutor {
-        &self.executor
+    /// Returns a shared handle to the runtime execution metrics.
+    pub fn metrics(&self) -> Arc<ExecutionMetrics> {
+        self.metrics.clone()
     }
 
-    /// Returns the resolver for cache inspection.
     pub fn resolver(&self) -> &ToolResolver {
         &self.resolver
     }
 
-    /// Returns the scheduler for permit inspection.
     pub fn scheduler(&self) -> &Scheduler {
         &self.scheduler
     }

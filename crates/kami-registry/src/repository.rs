@@ -9,6 +9,7 @@ use crate::query::ToolQuery;
 
 /// Errors returned by repository implementations.
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum RepositoryError {
     /// The requested tool was not found.
     #[error("tool not found: {id}")]
@@ -19,6 +20,9 @@ pub enum RepositoryError {
     /// A conflict (duplicate id, etc.).
     #[error("conflict: {message}")]
     Conflict { message: String },
+    /// Stored data is corrupt or cannot be deserialized.
+    #[error("data corruption for tool '{tool_id}': {message}")]
+    DataCorruption { tool_id: String, message: String },
 }
 
 /// Abstract trait for tool persistence.
@@ -34,6 +38,9 @@ pub trait ToolRepository: Send + Sync {
 
     /// Inserts a new tool.
     async fn insert(&self, tool: &Tool) -> Result<(), RepositoryError>;
+
+    /// Updates an existing tool. Returns `NotFound` if absent.
+    async fn update(&self, tool: &Tool) -> Result<(), RepositoryError>;
 
     /// Deletes a tool by ID. Returns true if it existed.
     async fn delete(&self, id: &ToolId) -> Result<bool, RepositoryError>;

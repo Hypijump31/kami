@@ -6,7 +6,19 @@
       "Bash(cargo clippy:*)",
       "Bash(cargo run:*)",
       "WebFetch(domain:docs.rs)",
-      "WebFetch(domain:docs.wasmtime.dev)"
+      "WebFetch(domain:docs.wasmtime.dev)",
+      "Bash(Get-Content \"F:\\\\APP\\\\VSCODE\\\\PROJET\\\\KAMI\\\\crates\\\\kami-config\\\\src\\\\manifest_loader.rs\")",
+      "Bash(Measure-Object -Line)",
+      "Bash(find:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(dir \"f:\\\\APP\\\\VSCODE\\\\PROJET\\\\KAMI\\\\crates\")",
+      "Bash(echo:*)",
+      "Bash(printf:*)",
+      "Bash(Get-Content \"f:\\\\APP\\\\VSCODE\\\\PROJET\\\\KAMI\\\\crates\\\\kami-runtime\\\\src\\\\orchestrator.rs\")",
+      "Bash(Select-Object -ExpandProperty Lines)",
+      "Bash(findstr:*)",
+      "Bash(cargo clean:*)",
+      "Bash(Get-Content \"f:\\\\APP\\\\VSCODE\\\\PROJET\\\\KAMI\\\\crates\\\\kami-cli\\\\src\\\\commands\\\\templates.rs\")"
     ]
   }
 }

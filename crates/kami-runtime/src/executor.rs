@@ -10,37 +10,14 @@ use wasmtime::component::{Component, Linker};
 use wasmtime::Engine;
 
 use kami_engine::{
-    call_tool_run, create_store, instantiate_component, set_epoch_deadline,
+    call_tool_run, create_store, instantiate_component, instantiate_tool, set_epoch_deadline,
     HostState,
 };
 use kami_sandbox::{build_wasi_ctx, validate_security_config, WasiConfig};
 use kami_types::SecurityConfig;
 
-use crate::context::ExecutionContext;
 use crate::error::RuntimeError;
-
-/// Result of a tool execution.
-#[derive(Debug, Clone)]
-pub struct ExecutionResult {
-    /// Output content from the tool.
-    pub content: String,
-    /// Execution duration in milliseconds.
-    pub duration_ms: u64,
-    /// Whether execution succeeded.
-    pub success: bool,
-    /// Fuel consumed during execution.
-    pub fuel_consumed: u64,
-}
-
-/// Trait for executing tools asynchronously.
-#[async_trait]
-pub trait ToolExecutor: Send + Sync {
-    /// Executes a tool with the given context.
-    async fn execute(
-        &self,
-        ctx: ExecutionContext,
-    ) -> Result<ExecutionResult, RuntimeError>;
-}
+use crate::types::{ExecutionResult, ToolExecutor};
 
 /// Concrete executor that runs WASM components through the
 /// engine + sandbox pipeline with full isolation enforcement.
@@ -54,17 +31,22 @@ impl WasmToolExecutor {
     pub fn new(engine: Engine, linker: Linker<HostState>) -> Self {
         Self { engine, linker }
     }
+}
 
+#[async_trait]
+impl ToolExecutor for WasmToolExecutor {
     /// Executes a component with full isolation pipeline.
     ///
-    /// Pipeline steps:
-    /// 1. Validate security config
-    /// 2. Build sandboxed WASI context
-    /// 3. Create store with memory limits + fuel
-    /// 4. Set epoch deadline for timeout
-    /// 5. Spawn epoch ticker task
-    /// 6. Instantiate and call with tokio::time::timeout
-    pub async fn execute_component(
+    /// # Errors
+    ///
+    /// Returns `RuntimeError::Sandbox` if security config is invalid.
+    /// Returns `RuntimeError::Engine` if the component fails to execute.
+    /// Returns `RuntimeError::Timeout` if execution exceeds the deadline.
+    #[tracing::instrument(skip_all, fields(
+        max_fuel = security.limits.max_fuel,
+        timeout_ms = security.limits.max_execution_ms,
+    ))]
+    async fn execute(
         &self,
         component: &Component,
         input: &str,
@@ -76,10 +58,8 @@ impl WasmToolExecutor {
         validate_security_config(security)?;
 
         let fuel = security.limits.max_fuel;
-        let max_memory =
-            security.limits.max_memory_mb as usize * 1024 * 1024;
-        let timeout_duration =
-            Duration::from_millis(security.limits.max_execution_ms);
+        let max_memory = security.limits.max_memory_mb as usize * 1024 * 1024;
+        let timeout_duration = Duration::from_millis(security.limits.max_execution_ms);
 
         debug!(
             fuel,
@@ -110,22 +90,22 @@ impl WasmToolExecutor {
             engine_clone.increment_epoch();
         });
 
-        // 6. Instantiate and call (store is borrowed, not moved)
+        // 6. Instantiate and call: try typed API (WIT components), fallback to flat
         let outer_timeout = timeout_duration + Duration::from_millis(500);
         let call_result = tokio::time::timeout(outer_timeout, async {
-            let instance =
-                instantiate_component(&self.linker, &mut store, component)
-                    .await?;
-            call_tool_run(&mut store, &instance, input).await
+            match instantiate_tool(&self.linker, &mut store, component).await {
+                Ok(tool) => kami_engine::bindings::call_run(&mut store, &tool, input).await,
+                Err(_) => {
+                    let inst = instantiate_component(&self.linker, &mut store, component).await?;
+                    call_tool_run(&mut store, &inst, input).await
+                }
+            }
         })
         .await;
 
-        // Cancel the epoch ticker
         tick_handle.abort();
 
         let duration_ms = start.elapsed().as_millis() as u64;
-
-        // Compute fuel consumed
         let fuel_remaining = store.get_fuel().unwrap_or(0);
         let fuel_consumed = fuel.saturating_sub(fuel_remaining);
 
@@ -156,10 +136,5 @@ impl WasmToolExecutor {
                 })
             }
         }
-    }
-
-    /// Returns a reference to the engine.
-    pub fn engine(&self) -> &Engine {
-        &self.engine
     }
 }

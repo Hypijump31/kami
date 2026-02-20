@@ -56,9 +56,7 @@ impl Scheduler {
     ///
     /// Blocks until a slot is available. Returns a guard that
     /// releases the permit when dropped.
-    pub async fn acquire(
-        &self,
-    ) -> Result<SchedulerPermit, crate::error::RuntimeError> {
+    pub async fn acquire(&self) -> Result<SchedulerPermit, crate::error::RuntimeError> {
         debug!(
             available = self.semaphore.available_permits(),
             max = self.max_concurrent,
@@ -84,6 +82,21 @@ impl Scheduler {
     pub fn max_concurrent(&self) -> usize {
         self.max_concurrent
     }
+
+    /// Drains the scheduler by waiting until all in-flight tasks finish.
+    ///
+    /// Acquires every permit — once all are held simultaneously, every
+    /// previously-issued permit has been released, meaning all executing
+    /// tasks have completed. Permits are dropped immediately after.
+    pub async fn drain(&self) {
+        let mut permits = Vec::with_capacity(self.max_concurrent);
+        for _ in 0..self.max_concurrent {
+            if let Ok(p) = self.semaphore.clone().acquire_owned().await {
+                permits.push(p);
+            }
+        }
+        // All in-flight executions are done; permits dropped here.
+    }
 }
 
 /// RAII guard that releases a scheduler permit when dropped.
@@ -97,8 +110,7 @@ mod tests {
 
     #[tokio::test]
     async fn scheduler_acquire_and_release() {
-        let scheduler =
-            Scheduler::new(&SchedulerConfig { max_concurrent: 2 });
+        let scheduler = Scheduler::new(&SchedulerConfig { max_concurrent: 2 });
 
         assert_eq!(scheduler.available_permits(), 2);
 
@@ -114,15 +126,13 @@ mod tests {
 
     #[tokio::test]
     async fn scheduler_blocks_at_capacity() {
-        let scheduler =
-            Scheduler::new(&SchedulerConfig { max_concurrent: 1 });
+        let scheduler = Scheduler::new(&SchedulerConfig { max_concurrent: 1 });
 
         let _p1 = scheduler.acquire().await.expect("permit");
         assert_eq!(scheduler.available_permits(), 0);
 
         // Second acquire should block; use try_acquire to test
-        let try_result =
-            scheduler.semaphore.clone().try_acquire_owned();
+        let try_result = scheduler.semaphore.clone().try_acquire_owned();
         assert!(try_result.is_err(), "should be at capacity");
     }
 }

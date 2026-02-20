@@ -89,8 +89,7 @@ mod tests {
             },
         };
         let json = serde_json::to_string(&params).expect("serialize");
-        let back: InitializeParams =
-            serde_json::from_str(&json).expect("deserialize");
+        let back: InitializeParams = serde_json::from_str(&json).expect("deserialize");
         assert_eq!(back.protocol_version, PROTOCOL_VERSION);
         assert_eq!(back.client_info.name, "test-client");
     }
@@ -108,8 +107,26 @@ mod tests {
             },
         };
         let json = serde_json::to_string(&result).expect("serialize");
-        let back: InitializeResult =
-            serde_json::from_str(&json).expect("deserialize");
+        let back: InitializeResult = serde_json::from_str(&json).expect("deserialize");
         assert_eq!(back.server_info.name, "kami");
+    }
+
+    #[test]
+    fn client_capabilities_default_has_no_tools() {
+        let caps = ClientCapabilities::default();
+        assert!(caps.tools.is_none());
+    }
+
+    #[test]
+    fn server_capabilities_empty_roundtrip() {
+        let caps = ServerCapabilities::default();
+        let json = serde_json::to_string(&caps).expect("ser");
+        let back: ServerCapabilities = serde_json::from_str(&json).expect("de");
+        assert!(back.tools.is_none());
+    }
+
+    #[test]
+    fn protocol_version_constant() {
+        assert_eq!(PROTOCOL_VERSION, "2024-11-05");
     }
 }

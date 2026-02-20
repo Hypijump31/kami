@@ -18,19 +18,15 @@ use serde::Serialize;
 ///
 /// let input: MyInput = kami_guest::abi::parse_input(raw_json)?;
 /// ```
-pub fn parse_input<T: DeserializeOwned>(
-    input: &str,
-) -> Result<T, String> {
-    serde_json::from_str(input)
-        .map_err(|e| format!("invalid input: {e}"))
+pub fn parse_input<T: DeserializeOwned>(input: &str) -> Result<T, String> {
+    serde_json::from_str(input).map_err(|e| format!("invalid input: {e}"))
 }
 
 /// Serializes a value into a JSON result string.
 ///
 /// Returns `Err(String)` if serialization fails.
 pub fn to_output<T: Serialize>(value: &T) -> Result<String, String> {
-    serde_json::to_string(value)
-        .map_err(|e| format!("serialization error: {e}"))
+    serde_json::to_string(value).map_err(|e| format!("serialization error: {e}"))
 }
 
 /// Builds a simple text result.
@@ -57,8 +53,7 @@ pub struct ToolMetadata {
 impl ToolMetadata {
     /// Serializes metadata to JSON for the `describe` ABI call.
     pub fn to_json(&self) -> String {
-        serde_json::to_string(self)
-            .unwrap_or_else(|_| "{}".to_string())
+        serde_json::to_string(self).unwrap_or_else(|_| "{}".to_string())
     }
 }
 
@@ -98,16 +93,14 @@ mod tests {
     #[test]
     fn text_result_wraps_string() {
         let result = text_result("hello").expect("ok");
-        let parsed: serde_json::Value =
-            serde_json::from_str(&result).expect("parse");
+        let parsed: serde_json::Value = serde_json::from_str(&result).expect("parse");
         assert_eq!(parsed["text"], "hello");
     }
 
     #[test]
     fn error_result_wraps_message() {
         let result = error_result("something failed");
-        let parsed: serde_json::Value =
-            serde_json::from_str(&result).expect("parse");
+        let parsed: serde_json::Value = serde_json::from_str(&result).expect("parse");
         assert_eq!(parsed["error"], "something failed");
     }
 

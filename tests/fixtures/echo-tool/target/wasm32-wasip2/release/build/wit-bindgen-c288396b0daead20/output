@@ -1,0 +1,2 @@
+cargo:rustc-link-lib=static=wit_bindgen_cabi0_51_0
+cargo:rustc-link-search=native=F:\APP\VSCODE\PROJET\KAMI\tests\fixtures\echo-tool\target\wasm32-wasip2\release\build\wit-bindgen-c288396b0daead20\out

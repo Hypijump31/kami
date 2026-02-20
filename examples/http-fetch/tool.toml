@@ -1,0 +1,26 @@
+[tool]
+id = "dev.kami.http-fetch"
+name = "http-fetch"
+version = "0.1.0"
+wasm = "http_fetch.wasm"
+
+[mcp]
+description = "Fetches content from a URL via HTTP GET"
+
+[[mcp.arguments]]
+name = "url"
+type = "string"
+description = "The URL to fetch"
+required = true
+
+[[mcp.arguments]]
+name = "max_bytes"
+type = "number"
+description = "Maximum response size in bytes (default: 65536)"
+required = false
+
+[security]
+net_allow_list = ["*"]
+fs_access = "none"
+max_memory_mb = 32
+max_execution_ms = 10000

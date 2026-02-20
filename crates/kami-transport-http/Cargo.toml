@@ -1,0 +1,25 @@
+[package]
+name = "kami-transport-http"
+version = "0.1.0"
+edition = "2021"
+description = "HTTP/JSON-RPC transport adapter for KAMI MCP server"
+
+[dependencies]
+kami-protocol = { workspace = true }
+kami-runtime = { workspace = true }
+kami-registry = { workspace = true }
+kami-transport-stdio = { workspace = true }
+axum = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+kami-runtime = { workspace = true }
+kami-store-sqlite = { workspace = true }
+kami-transport-stdio = { workspace = true }
+tokio = { workspace = true }
+tower = { version = "0.5", features = ["util"] }
+http = "1"

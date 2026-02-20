@@ -14,10 +14,7 @@ use std::path::Path;
 /// If `input_file` is `Some("-")`, reads from stdin.
 /// If `input_file` is `Some(path)`, reads from that file.
 /// Otherwise, returns the `input` string as-is.
-pub fn resolve_input(
-    input: &str,
-    input_file: Option<&str>,
-) -> anyhow::Result<String> {
+pub fn resolve_input(input: &str, input_file: Option<&str>) -> anyhow::Result<String> {
     match input_file {
         Some("-") => read_from_stdin(),
         Some(path) => read_from_file(path),
@@ -73,8 +70,7 @@ mod tests {
         let file_path = dir.path().join("input.json");
         std::fs::write(&file_path, r#"{"hello": "world"}"#).unwrap();
 
-        let result =
-            resolve_input("{}", Some(file_path.to_str().unwrap()));
+        let result = resolve_input("{}", Some(file_path.to_str().unwrap()));
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), r#"{"hello": "world"}"#);
     }
@@ -93,8 +89,7 @@ mod tests {
         let file_path = dir.path().join("bad.json");
         std::fs::write(&file_path, "not valid json").unwrap();
 
-        let result =
-            resolve_input("{}", Some(file_path.to_str().unwrap()));
+        let result = resolve_input("{}", Some(file_path.to_str().unwrap()));
         assert!(result.is_err());
         let err = result.unwrap_err().to_string();
         assert!(err.contains("invalid JSON"));
@@ -106,8 +101,7 @@ mod tests {
         let file_path = dir.path().join("spaced.json");
         std::fs::write(&file_path, "  {\"a\": 1}  \n").unwrap();
 
-        let result =
-            resolve_input("{}", Some(file_path.to_str().unwrap()));
+        let result = resolve_input("{}", Some(file_path.to_str().unwrap()));
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), "{\"a\": 1}");
     }

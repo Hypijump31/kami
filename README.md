@@ -43,9 +43,12 @@ KAMI enables AI agents to execute third-party tools **securely** and **isolated*
 ## Features
 
 - **Zero-Trust Security** — Network deny-all, filesystem jail, env var allow-list
+- **Ed25519 Plugin Signing** — Cryptographic signatures for tool integrity and authenticity
 - **Wasmtime v27** — Component Model + WASI P2 for modern WASM components
 - **MCP Server** — `kami serve` exposes tools via stdio JSON-RPC
 - **Tool Registry** — Install, list, inspect tools from SQLite catalog
+- **Remote Install** — Install tools from URLs, GitHub releases, or local paths
+- **Tool Search** — Query a remote registry index to discover community tools
 - **Resource Limits** — Per-tool memory cap, fuel metering, epoch-based timeouts
 - **Component Cache** — Pre-compiled WASM caching for instant warm starts
 - **Concurrency Control** — Semaphore-based scheduler limits parallel executions
@@ -64,8 +67,17 @@ cargo build --release
 ### Install a Tool
 
 ```bash
-# Install from a directory containing tool.toml + .wasm
+# Install from a local directory
 kami install ./my-tool/
+
+# Install from a URL (downloads and extracts .zip)
+kami install https://example.com/my-tool-v1.0.0.zip
+
+# Install from GitHub release (shorthand)
+kami install owner/repo@v1.0.0
+
+# Search the community registry
+kami search "json transform"
 
 # List installed tools
 kami list
@@ -88,6 +100,19 @@ kami exec dev.example.fetch-url --input-file request.json
 
 # Input from stdin
 echo '{"url":"https://example.com"}' | kami run ./my-tool.wasm --input-file -
+```
+
+### Sign & Verify a Tool
+
+```bash
+# Generate a signing keypair (once)
+kami keygen
+
+# Sign a tool's WASM binary
+kami sign ./my-tool/
+
+# Verify integrity and signature
+kami verify dev.example.fetch-url --public-key ~/.kami/keys/kami_signing_key.pub
 ```
 
 ### Start MCP Server
@@ -259,19 +284,26 @@ KAMI implements the [Model Context Protocol](https://modelcontextprotocol.io/) f
 | `kami-store-sqlite` | Adapter | SQLite CRUD, migrations, JSON columns |
 | `kami-transport-stdio` | Adapter | StdioTransport, McpHandler, McpServer |
 | `kami-config` | Adapter | Layered config (TOML + env + defaults) |
-| `kami-cli` | Infrastructure | CLI commands (install, run, exec, list, inspect, serve) |
+| `kami-cli` | Infrastructure | CLI commands (install, search, run, exec, serve, etc.) |
 | `kami-guest` | SDK | `kami_tool!` macro, ABI helpers for tool developers |
 
 ## CLI Commands
 
 | Command | Description |
 |---------|-------------|
-| `kami install <path>` | Install a tool from directory or .toml file |
+| `kami install <source>` | Install a tool from local path, URL, or GitHub shorthand |
+| `kami search <query>` | Search the remote registry for tools |
+| `kami publish` | Generate a registry entry to publish your tool |
 | `kami run <file.wasm>` | Run a WASM component directly (dev mode) |
 | `kami exec <tool-id>` | Execute a registered tool by ID |
 | `kami list [--filter name]` | List installed tools |
 | `kami inspect <tool-id>` | Show detailed tool information |
-| `kami serve` | Start MCP server over stdio |
+| `kami serve` | Start MCP server (stdio or HTTP) |
+| `kami update [tool-id]` | Update tools from their source |
+| `kami keygen` | Generate Ed25519 signing keypair |
+| `kami sign <tool-dir>` | Sign a WASM plugin with Ed25519 |
+| `kami verify <tool-id>` | Verify WASM integrity (SHA-256 + Ed25519) |
+| `kami status` | Show runtime and registry statistics |
 
 ## Development
 
@@ -284,7 +316,7 @@ KAMI implements the [Model Context Protocol](https://modelcontextprotocol.io/) f
 
 ```bash
 cargo build                    # Build all 11 crates
-cargo test                     # Run all tests (81+)
+cargo test                     # Run all tests (402+)
 cargo clippy -- -D warnings    # Lint (zero warnings)
 cargo fmt --check              # Format check
 cargo doc --no-deps --open     # Generate docs
@@ -298,6 +330,7 @@ cargo run -p kami-cli -- serve # Start MCP server
 | [`docs/TECHNICAL.md`](docs/TECHNICAL.md) | Data flows, crate APIs, error handling, async model, wire protocol |
 | [`docs/SECURITY.md`](docs/SECURITY.md) | Threat model, defense in depth, attack surface analysis |
 | [`docs/DEVELOPER.md`](docs/DEVELOPER.md) | Tool developer guide: build, test, publish WASM tools |
+| [`docs/TOOL_AUTHOR_GUIDE.md`](docs/TOOL_AUTHOR_GUIDE.md) | Step-by-step guide to building and distributing tools |
 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Build, install, configure, AI agent integration |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Architecture Decision Records (ADR-001 to ADR-007) |
 
@@ -313,7 +346,7 @@ cargo run -p kami-cli -- serve # Start MCP server
 | Phase 5: Protocol | Done | MCP transport, JSON-RPC dispatch, serve |
 | Phase 6: SDK & Docs | Done | kami-guest, kami_tool!, architecture docs |
 
-> **95+ tests passing, zero clippy warnings.**
+> **402+ tests passing, zero clippy warnings, 71%+ coverage.**
 
 ## Contributing
 

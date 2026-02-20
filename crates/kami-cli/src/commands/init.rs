@@ -7,6 +7,7 @@ use std::path::Path;
 
 use clap::Args;
 
+use crate::commands::templates;
 use crate::output;
 
 /// Scaffold a new KAMI tool project.
@@ -19,134 +20,61 @@ pub struct InitArgs {
     pub prefix: String,
 }
 
-/// Executes the init command.
+/// Executes the init command in the current working directory.
 pub fn execute(args: &InitArgs) -> anyhow::Result<()> {
-    let dir = Path::new(&args.name);
+    execute_at(args, Path::new("."))
+}
+
+/// Executes the init command with an explicit base directory (testable).
+pub(crate) fn execute_at(args: &InitArgs, base_dir: &Path) -> anyhow::Result<()> {
+    let dir = base_dir.join(&args.name);
     if dir.exists() {
-        anyhow::bail!(
-            "directory already exists: {}",
-            dir.display()
-        );
+        anyhow::bail!("directory already exists: {}", dir.display());
     }
 
     let tool_id = format!("{}.{}", args.prefix, args.name);
     let crate_name = args.name.replace('-', "_");
 
-    // Create directory structure
     std::fs::create_dir_all(dir.join("src"))?;
 
-    // 1. Generate Cargo.toml
-    let cargo_toml = format!(
-        r#"[package]
-name = "{name}"
-version = "1.0.0"
-edition = "2021"
+    write_cargo_toml(&dir, &args.name)?;
+    write_tool_toml(&dir, &tool_id, &args.name, &crate_name)?;
+    write_lib_rs(&dir, &tool_id)?;
+    std::fs::write(dir.join(".gitignore"), templates::GITIGNORE)?;
 
-[lib]
-crate-type = ["cdylib"]
+    print_success(&args.name, &crate_name);
+    Ok(())
+}
 
-[dependencies]
-kami-guest = {{ git = "https://github.com/Hypijump31/kami.git", path = "crates/kami-guest" }}
-serde = {{ version = "1", features = ["derive"] }}
-serde_json = "1"
-"#,
-        name = args.name
+fn write_cargo_toml(dir: &Path, name: &str) -> anyhow::Result<()> {
+    let content = templates::apply(templates::CARGO_TOML, &[("__TOOL_NAME__", name)]);
+    std::fs::write(dir.join("Cargo.toml"), content)?;
+    Ok(())
+}
+
+fn write_tool_toml(dir: &Path, tool_id: &str, name: &str, crate_name: &str) -> anyhow::Result<()> {
+    let content = templates::apply(
+        templates::TOOL_TOML,
+        &[
+            ("__TOOL_ID__", tool_id),
+            ("__TOOL_NAME__", name),
+            ("__CRATE_NAME__", crate_name),
+        ],
     );
+    std::fs::write(dir.join("tool.toml"), content)?;
+    Ok(())
+}
 
-    std::fs::write(dir.join("Cargo.toml"), cargo_toml)?;
+fn write_lib_rs(dir: &Path, tool_id: &str) -> anyhow::Result<()> {
+    let content = templates::apply(templates::LIB_RS, &[("__TOOL_ID__", tool_id)]);
+    std::fs::write(dir.join("src").join("lib.rs"), content)?;
+    Ok(())
+}
 
-    // 2. Generate tool.toml
-    let tool_toml = format!(
-        r#"[tool]
-id = "{tool_id}"
-name = "{name}"
-version = "1.0.0"
-wasm = "{crate_name}.wasm"
-
-[mcp]
-description = "TODO: Describe what this tool does"
-
-[[mcp.arguments]]
-name = "input"
-type = "string"
-description = "TODO: Describe this argument"
-required = true
-
-[security]
-net_allow_list = []
-fs_access = "none"
-max_memory_mb = 32
-max_execution_ms = 5000
-max_fuel = 1000000
-"#,
-        tool_id = tool_id,
-        name = args.name,
-        crate_name = crate_name
-    );
-
-    std::fs::write(dir.join("tool.toml"), tool_toml)?;
-
-    // 3. Generate src/lib.rs
-    let lib_rs = format!(
-        r#"use kami_guest::kami_tool;
-
-kami_tool! {{
-    name: "{tool_id}",
-    version: "1.0.0",
-    description: "TODO: Describe what this tool does",
-    handler: handle,
-}}
-
-fn handle(input: &str) -> Result<String, String> {{
-    let args: serde_json::Value = serde_json::from_str(input)
-        .map_err(|e| format!("invalid JSON: {{e}}"))?;
-
-    let response = serde_json::json!({{
-        "result": args,
-        "tool": "{tool_id}"
-    }});
-
-    Ok(response.to_string())
-}}
-
-#[cfg(test)]
-mod tests {{
-    use super::*;
-
-    #[test]
-    fn valid_input() {{
-        let result = handle(r#"{{"input":"hello"}}"#);
-        assert!(result.is_ok());
-    }}
-
-    #[test]
-    fn invalid_input() {{
-        let result = handle("not json");
-        assert!(result.is_err());
-    }}
-
-    #[test]
-    fn empty_input() {{
-        let result = handle("{{}}");
-        assert!(result.is_ok());
-    }}
-}}
-"#,
-        tool_id = tool_id
-    );
-
-    std::fs::write(dir.join("src").join("lib.rs"), lib_rs)?;
-
-    // 4. Generate .gitignore
-    let gitignore = "target/\n*.wasm\n";
-    std::fs::write(dir.join(".gitignore"), gitignore)?;
-
-    output::print_success(&format!(
-        "Created tool project: {name}/",
-        name = args.name
-    ));
+fn print_success(name: &str, crate_name: &str) {
+    output::print_success(&format!("Created tool project: {name}/"));
     println!();
-    println!("  {}/", args.name);
+    println!("  {name}/");
     println!("  ├── Cargo.toml");
     println!("  ├── tool.toml");
     println!("  ├── .gitignore");
@@ -154,16 +82,51 @@ mod tests {{
     println!("      └── lib.rs");
     println!();
     println!("Next steps:");
-    println!(
-        "  cd {}",
-        args.name
-    );
+    println!("  cd {name}");
     println!("  cargo build --target wasm32-wasip2 --release");
-    println!(
-        "  cp target/wasm32-wasip2/release/{crate_name}.wasm ."
-    );
+    println!("  cp target/wasm32-wasip2/release/{crate_name}.wasm .");
     println!("  kami validate .");
     println!("  kami install .");
+}
 
-    Ok(())
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn init_creates_expected_files() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let args = InitArgs {
+            name: "test-tool".to_string(),
+            prefix: "dev.test".to_string(),
+        };
+        execute_at(&args, tmp.path()).expect("init");
+
+        let base = tmp.path().join("test-tool");
+        assert!(base.join("Cargo.toml").exists());
+        assert!(base.join("tool.toml").exists());
+        assert!(base.join("src/lib.rs").exists());
+        assert!(base.join(".gitignore").exists());
+
+        let cargo = std::fs::read_to_string(base.join("Cargo.toml")).expect("read Cargo.toml");
+        assert!(cargo.contains("name = \"test-tool\""));
+        assert!(cargo.contains("path = \"../crates/kami-guest\""));
+
+        let tool = std::fs::read_to_string(base.join("tool.toml")).expect("read tool.toml");
+        assert!(tool.contains("id = \"dev.test.test-tool\""));
+
+        let lib = std::fs::read_to_string(base.join("src/lib.rs")).expect("read lib.rs");
+        assert!(lib.contains("name: \"dev.test.test-tool\""));
+    }
+
+    #[test]
+    fn init_fails_if_dir_exists() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        std::fs::create_dir_all(tmp.path().join("existing")).expect("mkdir");
+        let args = InitArgs {
+            name: "existing".to_string(),
+            prefix: "dev.test".to_string(),
+        };
+        assert!(execute_at(&args, tmp.path()).is_err());
+    }
 }

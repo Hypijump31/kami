@@ -1,0 +1,22 @@
+# cargo-audit configuration
+# See: https://github.com/rustsec/rustsec/tree/main/cargo-audit
+
+[advisories]
+# Accepted low-severity wasmtime advisories
+# Both require upgrading to wasmtime v33+/v36+ (major breaking change)
+# Scheduled for resolution during wasmtime v34+ migration
+#
+# RUSTSEC-2025-0046: Host panic with fd_renumber WASIp1 function (severity 3.3)
+# Mitigation: KAMI uses WASIp2 exclusively, fd_renumber is a WASIp1 function
+#
+# RUSTSEC-2025-0118: Unsound API access to shared linear memory (severity 1.8)
+# Mitigation: KAMI does not use the shared memory APIs (memory.shared = false)
+#
+# RUSTSEC-2024-0436: paste — unmaintained, transitive dep of wasmtime
+# RUSTSEC-2025-0057: fxhash — unmaintained, transitive dep of wasmtime
+ignore = [
+    "RUSTSEC-2025-0046",
+    "RUSTSEC-2025-0118",
+    "RUSTSEC-2024-0436",
+    "RUSTSEC-2025-0057",
+]

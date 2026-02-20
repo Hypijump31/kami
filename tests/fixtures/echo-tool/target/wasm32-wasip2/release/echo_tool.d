@@ -1,0 +1,1 @@
+F:\APP\VSCODE\PROJET\KAMI\tests\fixtures\echo-tool\target\wasm32-wasip2\release\echo_tool.wasm: \\?\F:\APP\VSCODE\PROJET\KAMI\wit\host.wit \\?\F:\APP\VSCODE\PROJET\KAMI\wit\tool.wit \\?\F:\APP\VSCODE\PROJET\KAMI\wit\world.wit F:\APP\VSCODE\PROJET\KAMI\tests\fixtures\echo-tool\src\lib.rs

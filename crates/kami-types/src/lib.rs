@@ -1,18 +1,18 @@
 //! # kami-types
 //!
 //! Domain types for the KAMI orchestrator.
-//! This crate contains pure data types with zero external dependencies
-//! (except serde for serialization).
+//! Zero external dependencies except `serde` for serialization.
+//! No filesystem I/O — `tool.toml` parsing is in `kami-config`.
 
 pub mod capability;
 pub mod error;
 pub mod event;
 pub mod manifest;
 pub mod tool;
+pub mod version;
 
 // Re-exports for convenience.
 pub use capability::{Capability, FsAccess, ResourceLimits, SecurityConfig};
-pub use error::{ErrorKind, KamiError};
+pub use error::{DiagnosticError, ErrorKind, KamiError};
 pub use event::DomainEvent;
-pub use manifest::{parse_tool_manifest, parse_tool_manifest_file};
 pub use tool::{Tool, ToolArgument, ToolId, ToolManifest, ToolVersion};

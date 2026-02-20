@@ -5,6 +5,7 @@
 //! Provides line-delimited JSON transport over stdin/stdout,
 //! MCP method dispatch, and a server loop that ties them together.
 
+mod dispatch;
 pub mod error;
 pub mod handler;
 pub mod server;

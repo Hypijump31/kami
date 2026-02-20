@@ -33,9 +33,7 @@ where
     /// Reads the next line from the input stream.
     ///
     /// Returns `None` on EOF (connection closed).
-    pub async fn read_line(
-        &mut self,
-    ) -> Result<Option<String>, TransportError> {
+    pub async fn read_line(&mut self) -> Result<Option<String>, TransportError> {
         let mut line = String::new();
         let bytes_read = self
             .reader
@@ -57,10 +55,7 @@ where
     }
 
     /// Writes a JSON-RPC response line to the output stream.
-    pub async fn write_line(
-        &mut self,
-        message: &str,
-    ) -> Result<(), TransportError> {
+    pub async fn write_line(&mut self, message: &str) -> Result<(), TransportError> {
         trace!(len = message.len(), "writing message");
 
         self.writer
@@ -116,8 +111,7 @@ mod tests {
 
         transport.write_line("{\"ok\":true}").await.expect("write");
 
-        let output =
-            String::from_utf8(transport.writer.clone()).expect("utf8");
+        let output = String::from_utf8(transport.writer.clone()).expect("utf8");
         assert_eq!(output, "{\"ok\":true}\n");
     }
 

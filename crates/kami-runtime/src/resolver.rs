@@ -15,6 +15,7 @@ use kami_types::ToolId;
 
 use crate::cache::{CachedComponent, ComponentCache};
 use crate::error::RuntimeError;
+use crate::integrity;
 
 /// Resolves tools from the registry and compiles their WASM components.
 ///
@@ -27,11 +28,7 @@ pub struct ToolResolver {
 
 impl ToolResolver {
     /// Creates a new resolver with the given engine, cache, and repository.
-    pub fn new(
-        engine: Engine,
-        cache: ComponentCache,
-        repository: Arc<dyn ToolRepository>,
-    ) -> Self {
+    pub fn new(engine: Engine, cache: ComponentCache, repository: Arc<dyn ToolRepository>) -> Self {
         Self {
             engine,
             cache,
@@ -43,10 +40,8 @@ impl ToolResolver {
     ///
     /// Returns the cached component if available, otherwise loads from
     /// the registry, compiles, and caches.
-    pub async fn resolve(
-        &self,
-        id: &ToolId,
-    ) -> Result<CachedComponent, RuntimeError> {
+    #[tracing::instrument(skip(self), fields(tool_id = %id))]
+    pub async fn resolve(&self, id: &ToolId) -> Result<CachedComponent, RuntimeError> {
         // 1. Check cache first
         if let Some(cached) = self.cache.get(id).await {
             debug!(%id, "cache hit");
@@ -66,25 +61,40 @@ impl ToolResolver {
             })?;
 
         // 3. Resolve WASM file path
-        let wasm_path =
-            Path::new(&tool.install_path).join(&tool.manifest.wasm);
+        let wasm_path = Path::new(&tool.install_path).join(&tool.manifest.wasm);
 
         if !wasm_path.exists() {
             return Err(RuntimeError::ToolNotFound {
-                name: format!(
-                    "WASM file missing: {}",
-                    wasm_path.display()
-                ),
+                name: format!("WASM file missing: {}", wasm_path.display()),
             });
+        }
+
+        // 4. Verify WASM integrity (skipped if no hash stored at install time)
+        integrity::verify_hash(&wasm_path, &tool.manifest.wasm_sha256).map_err(|e| {
+            RuntimeError::IntegrityViolation {
+                tool_id: id.to_string(),
+                detail: e.to_string(),
+            }
+        })?;
+
+        // 5. Verify Ed25519 signature if stored
+        if let (Some(sig), Some(pk)) = (&tool.manifest.signature, &tool.manifest.signer_public_key)
+        {
+            crate::signature::verify_file_signature(&wasm_path, sig, pk).map_err(|e| {
+                RuntimeError::IntegrityViolation {
+                    tool_id: id.to_string(),
+                    detail: format!("signature verification failed: {e}"),
+                }
+            })?;
+            debug!(%id, "signature verified");
         }
 
         info!(%id, path = %wasm_path.display(), "compiling component");
 
-        // 4. Compile the component
-        let component =
-            load_component_from_file(&self.engine, &wasm_path)?;
+        // 5. Compile the component
+        let component = load_component_from_file(&self.engine, &wasm_path)?;
 
-        // 5. Cache it
+        // 6. Cache it
         let cached = CachedComponent {
             component,
             security: tool.manifest.security.clone(),

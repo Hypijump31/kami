@@ -1,6 +1,6 @@
-/// Host functions provided to guest tools.
-
 package kami:tool@0.1.0;
+
+/// Host functions provided to guest tools.
 
 interface host {
     /// Log a message from the guest.

@@ -51,11 +51,7 @@ impl DomainEvent {
     }
 
     /// Creates an execution-completed event.
-    pub fn execution_completed(
-        tool_id: ToolId,
-        duration_ms: u64,
-        success: bool,
-    ) -> Self {
+    pub fn execution_completed(tool_id: ToolId, duration_ms: u64, success: bool) -> Self {
         Self::ExecutionCompleted {
             tool_id,
             duration_ms,
@@ -70,7 +66,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn event_creation() {
+    fn tool_installed_event() {
         let id = ToolId::new("dev.test.tool").unwrap();
         let event = DomainEvent::tool_installed(id);
         match &event {
@@ -78,6 +74,50 @@ mod tests {
                 assert_eq!(tool_id.as_str(), "dev.test.tool");
             }
             _ => panic!("unexpected event variant"),
+        }
+    }
+
+    #[test]
+    fn execution_started_event() {
+        let id = ToolId::new("dev.test.run").unwrap();
+        let event = DomainEvent::execution_started(id);
+        match &event {
+            DomainEvent::ExecutionStarted { tool_id, .. } => {
+                assert_eq!(tool_id.as_str(), "dev.test.run");
+            }
+            _ => panic!("unexpected event variant"),
+        }
+    }
+
+    #[test]
+    fn execution_completed_event() {
+        let id = ToolId::new("dev.test.done").unwrap();
+        let event = DomainEvent::execution_completed(id, 42, true);
+        match &event {
+            DomainEvent::ExecutionCompleted {
+                duration_ms,
+                success,
+                ..
+            } => {
+                assert_eq!(*duration_ms, 42);
+                assert!(*success);
+            }
+            _ => panic!("unexpected event variant"),
+        }
+    }
+
+    #[test]
+    fn event_serialization_roundtrip() {
+        let id = ToolId::new("dev.test.serde").unwrap();
+        let event = DomainEvent::tool_installed(id);
+        let json = serde_json::to_string(&event).expect("serialize");
+        assert!(json.contains("tool_installed"));
+        let back: DomainEvent = serde_json::from_str(&json).expect("deserialize");
+        match back {
+            DomainEvent::ToolInstalled { tool_id, .. } => {
+                assert_eq!(tool_id.as_str(), "dev.test.serde");
+            }
+            _ => panic!("unexpected variant after roundtrip"),
         }
     }
 }

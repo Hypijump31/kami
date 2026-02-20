@@ -91,4 +91,14 @@ mod tests {
         let state = HostState::with_limits(ctx, 32 * 1024 * 1024);
         assert_eq!(state.fuel_consumed(), 0);
     }
+
+    #[test]
+    fn record_fuel_updates_consumed() {
+        let ctx = WasiCtxBuilder::new().build();
+        let mut state = HostState::new(ctx);
+        state.record_fuel(500);
+        assert_eq!(state.fuel_consumed(), 500);
+        state.record_fuel(1000);
+        assert_eq!(state.fuel_consumed(), 1000);
+    }
 }

@@ -76,6 +76,21 @@ impl fmt::Display for KamiError {
 
 impl std::error::Error for KamiError {}
 
+/// Transforms technical errors into user-actionable diagnostics.
+///
+/// Implementors provide optional `hint` (cause explanation) and `fix`
+/// (concrete remediation step) for each error variant.
+pub trait DiagnosticError {
+    /// A human-readable explanation of the likely cause.
+    fn hint(&self) -> Option<String> {
+        None
+    }
+    /// A concrete fix the user can apply (e.g. a config change).
+    fn fix(&self) -> Option<String> {
+        None
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -88,8 +103,7 @@ mod tests {
 
     #[test]
     fn error_display_with_context() {
-        let err = KamiError::not_found("tool not found")
-            .with_context("id: dev.example.fetch");
+        let err = KamiError::not_found("tool not found").with_context("id: dev.example.fetch");
         assert!(err.to_string().contains("dev.example.fetch"));
     }
 
@@ -100,5 +114,32 @@ mod tests {
         let back: KamiError = serde_json::from_str(&json).expect("deserialize");
         assert_eq!(back.kind, ErrorKind::PermissionDenied);
         assert_eq!(back.message, "access denied");
+    }
+
+    #[test]
+    fn not_found_constructor() {
+        let err = KamiError::not_found("missing");
+        assert_eq!(err.kind, ErrorKind::NotFound);
+    }
+
+    #[test]
+    fn permission_denied_constructor() {
+        let err = KamiError::permission_denied("nope");
+        assert_eq!(err.kind, ErrorKind::PermissionDenied);
+    }
+
+    #[test]
+    fn invalid_input_constructor() {
+        let err = KamiError::invalid_input("bad data");
+        assert_eq!(err.kind, ErrorKind::InvalidInput);
+    }
+
+    #[test]
+    fn diagnostic_trait_defaults_to_none() {
+        struct Dummy;
+        impl DiagnosticError for Dummy {}
+        let d = Dummy;
+        assert!(d.hint().is_none());
+        assert!(d.fix().is_none());
     }
 }

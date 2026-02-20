@@ -63,3 +63,72 @@ pub struct ToolsCallResult {
     #[serde(default, rename = "isError")]
     pub is_error: bool,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn tools_list_params_default() {
+        let p = ToolsListParams::default();
+        assert!(p.cursor.is_none());
+    }
+
+    #[test]
+    fn tool_definition_serde_roundtrip() {
+        let def = McpToolDefinition {
+            name: "my-tool".into(),
+            description: Some("A tool".into()),
+            input_schema: json!({"type": "object"}),
+        };
+        let s = serde_json::to_string(&def).expect("ser");
+        assert!(s.contains("inputSchema"));
+        let back: McpToolDefinition = serde_json::from_str(&s).expect("de");
+        assert_eq!(back.name, "my-tool");
+    }
+
+    #[test]
+    fn tools_list_result_with_tools() {
+        let res = ToolsListResult {
+            tools: vec![McpToolDefinition {
+                name: "t".into(),
+                description: None,
+                input_schema: json!({}),
+            }],
+            next_cursor: None,
+        };
+        let s = serde_json::to_string(&res).expect("ser");
+        let back: ToolsListResult = serde_json::from_str(&s).expect("de");
+        assert_eq!(back.tools.len(), 1);
+    }
+
+    #[test]
+    fn tools_call_params_serde() {
+        let j = r#"{"name":"echo","arguments":{"x":1}}"#;
+        let p: ToolsCallParams = serde_json::from_str(j).expect("de");
+        assert_eq!(p.name, "echo");
+        assert_eq!(p.arguments["x"], 1);
+    }
+
+    #[test]
+    fn tool_content_text_variant() {
+        let c = ToolContent::Text {
+            text: "hello".into(),
+        };
+        let s = serde_json::to_string(&c).expect("ser");
+        assert!(s.contains("\"type\":\"text\""));
+    }
+
+    #[test]
+    fn tools_call_result_roundtrip() {
+        let r = ToolsCallResult {
+            content: vec![ToolContent::Text { text: "ok".into() }],
+            is_error: false,
+        };
+        let s = serde_json::to_string(&r).expect("ser");
+        let back: ToolsCallResult = serde_json::from_str(&s).expect("de");
+        assert!(!back.is_error);
+        assert_eq!(back.content.len(), 1);
+    }
+}

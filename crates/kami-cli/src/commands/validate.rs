@@ -7,8 +7,8 @@ use std::path::Path;
 
 use clap::Args;
 
+use kami_config::parse_tool_manifest_file;
 use kami_sandbox::validate_security_config;
-use kami_types::parse_tool_manifest_file;
 
 use crate::output;
 
@@ -29,16 +29,11 @@ pub fn execute(args: &ValidateArgs) -> anyhow::Result<()> {
     } else if tool_path.extension().is_some_and(|e| e == "toml") {
         tool_path.to_path_buf()
     } else {
-        anyhow::bail!(
-            "expected a directory containing tool.toml or a .toml file"
-        );
+        anyhow::bail!("expected a directory containing tool.toml or a .toml file");
     };
 
     if !manifest_path.exists() {
-        anyhow::bail!(
-            "tool.toml not found: {}",
-            manifest_path.display()
-        );
+        anyhow::bail!("tool.toml not found: {}", manifest_path.display());
     }
 
     // 1. Parse manifest
@@ -46,22 +41,10 @@ pub fn execute(args: &ValidateArgs) -> anyhow::Result<()> {
     let manifest = parse_tool_manifest_file(&manifest_path)
         .map_err(|e| anyhow::anyhow!("manifest error: {e}"))?;
 
-    println!(
-        "  ID:          {}",
-        manifest.id
-    );
-    println!(
-        "  Name:        {}",
-        manifest.name
-    );
-    println!(
-        "  Version:     {}",
-        manifest.version
-    );
-    println!(
-        "  Description: {}",
-        manifest.description
-    );
+    println!("  ID:          {}", manifest.id);
+    println!("  Name:        {}", manifest.name);
+    println!("  Version:     {}", manifest.version);
+    println!("  Description: {}", manifest.description);
 
     // 2. Validate security config
     println!("Checking security config...");
@@ -72,14 +55,8 @@ pub fn execute(args: &ValidateArgs) -> anyhow::Result<()> {
         "  Network:     {} host(s) allowed",
         manifest.security.net_allow_list.len()
     );
-    println!(
-        "  Filesystem:  {:?}",
-        manifest.security.fs_access
-    );
-    println!(
-        "  Fuel:        {}",
-        manifest.security.limits.max_fuel
-    );
+    println!("  Filesystem:  {:?}", manifest.security.fs_access);
+    println!("  Fuel:        {}", manifest.security.limits.max_fuel);
     println!(
         "  Memory:      {} MB",
         manifest.security.limits.max_memory_mb
@@ -91,8 +68,7 @@ pub fn execute(args: &ValidateArgs) -> anyhow::Result<()> {
 
     // 3. Check WASM file
     println!("Checking WASM file...");
-    let tool_dir =
-        manifest_path.parent().unwrap_or_else(|| Path::new("."));
+    let tool_dir = manifest_path.parent().unwrap_or_else(|| Path::new("."));
     let wasm_path = tool_dir.join(&manifest.wasm);
 
     if wasm_path.exists() {
@@ -116,10 +92,7 @@ pub fn execute(args: &ValidateArgs) -> anyhow::Result<()> {
     );
     for arg in &manifest.arguments {
         let req = if arg.required { "required" } else { "optional" };
-        println!(
-            "  {}: {} ({})",
-            arg.name, arg.arg_type, req
-        );
+        println!("  {}: {} ({})", arg.name, arg.arg_type, req);
     }
 
     output::print_success(&format!(
@@ -128,4 +101,71 @@ pub fn execute(args: &ValidateArgs) -> anyhow::Result<()> {
     ));
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn valid_tool_passes() {
+        let dir = tempfile::tempdir().expect("tmpdir");
+        let toml = r#"
+[tool]
+id = "dev.test.val"
+name = "val"
+version = "1.0.0"
+wasm = "val.wasm"
+
+[mcp]
+description = "test"
+
+[security]
+fs_access = "none"
+max_memory_mb = 16
+max_execution_ms = 1000
+"#;
+        std::fs::write(dir.path().join("tool.toml"), toml).expect("write");
+        std::fs::write(dir.path().join("val.wasm"), b"fake").expect("write");
+        let args = ValidateArgs {
+            path: dir.path().to_str().expect("u").into(),
+        };
+        assert!(execute(&args).is_ok());
+    }
+
+    #[test]
+    fn missing_wasm_fails() {
+        let dir = tempfile::tempdir().expect("tmpdir");
+        let toml = r#"
+[tool]
+id = "dev.test.nw"
+name = "nw"
+version = "1.0.0"
+wasm = "missing.wasm"
+
+[mcp]
+description = "no wasm"
+
+[security]
+fs_access = "none"
+max_memory_mb = 16
+max_execution_ms = 1000
+"#;
+        std::fs::write(dir.path().join("tool.toml"), toml).expect("write");
+        let args = ValidateArgs {
+            path: dir.path().to_str().expect("u").into(),
+        };
+        let err = execute(&args);
+        assert!(err.is_err());
+    }
+
+    #[test]
+    fn missing_manifest_fails() {
+        let dir = tempfile::tempdir().expect("tmpdir");
+        let args = ValidateArgs {
+            path: dir.path().to_str().expect("u").into(),
+        };
+        let err = execute(&args);
+        assert!(err.is_err());
+    }
 }

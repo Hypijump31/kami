@@ -1,4 +1,6 @@
 //! Tool identity and manifest types.
+//!
+//! `ToolVersion` display and parsing live in `version.rs`.
 
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -19,7 +21,6 @@ impl ToolId {
         if id.is_empty() {
             return Err(KamiError::invalid_input("tool id cannot be empty"));
         }
-        // Must contain at least one dot (reverse-domain)
         if !id.contains('.') {
             return Err(KamiError::invalid_input(
                 "tool id must use reverse-domain notation (e.g. dev.example.tool)",
@@ -67,35 +68,6 @@ impl ToolVersion {
     }
 }
 
-impl fmt::Display for ToolVersion {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}.{}.{}", self.major, self.minor, self.patch)
-    }
-}
-
-impl FromStr for ToolVersion {
-    type Err = KamiError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let parts: Vec<&str> = s.split('.').collect();
-        if parts.len() != 3 {
-            return Err(KamiError::invalid_input(
-                "version must be in semver format: MAJOR.MINOR.PATCH",
-            ));
-        }
-        let parse = |p: &str| -> Result<u32, KamiError> {
-            p.parse::<u32>().map_err(|_| {
-                KamiError::invalid_input(format!("invalid version component: {p}"))
-            })
-        };
-        Ok(Self {
-            major: parse(parts[0])?,
-            minor: parse(parts[1])?,
-            patch: parse(parts[2])?,
-        })
-    }
-}
-
 /// MCP argument definition for a tool.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolArgument {
@@ -132,6 +104,15 @@ pub struct ToolManifest {
     pub arguments: Vec<ToolArgument>,
     /// Security configuration.
     pub security: SecurityConfig,
+    /// SHA-256 hex digest of the WASM file (computed at install time).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub wasm_sha256: Option<String>,
+    /// Ed25519 hex-encoded signature of the WASM file.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub signature: Option<String>,
+    /// Ed25519 hex-encoded public key of the signer.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub signer_public_key: Option<String>,
 }
 
 /// Installed tool with metadata.
@@ -143,6 +124,12 @@ pub struct Tool {
     pub install_path: String,
     /// Whether the tool is enabled.
     pub enabled: bool,
+    /// Pinned version — prevents updates beyond this version.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pinned_version: Option<String>,
+    /// ISO 8601 timestamp of the last update.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<String>,
 }
 
 #[cfg(test)]
@@ -164,23 +151,5 @@ mod tests {
     #[test]
     fn tool_id_without_dot_rejected() {
         assert!(ToolId::new("no-dot").is_err());
-    }
-
-    #[test]
-    fn version_parse() {
-        let v: ToolVersion = "1.2.3".parse().unwrap();
-        assert_eq!(v, ToolVersion::new(1, 2, 3));
-    }
-
-    #[test]
-    fn version_display() {
-        let v = ToolVersion::new(0, 1, 0);
-        assert_eq!(v.to_string(), "0.1.0");
-    }
-
-    #[test]
-    fn invalid_version_rejected() {
-        assert!("1.2".parse::<ToolVersion>().is_err());
-        assert!("a.b.c".parse::<ToolVersion>().is_err());
     }
 }

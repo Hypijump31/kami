@@ -9,7 +9,7 @@ use kami_types::{FsAccess, SecurityConfig};
 use wasmtime_wasi::{DirPerms, FilePerms, WasiCtx, WasiCtxBuilder};
 
 use crate::error::SandboxError;
-use crate::network::is_host_allowed;
+use crate::network::is_addr_allowed;
 
 /// Options controlling WASI context construction.
 #[derive(Debug, Clone, Default)]
@@ -44,8 +44,17 @@ pub fn build_wasi_ctx(
         builder.inherit_stderr();
     }
 
-    // -- environment variables (explicit only, never inherit) --
+    // -- environment variables (filtered by env_allow_list) --
+    // If env_allow_list is non-empty, only listed vars are exposed.
+    // If env_allow_list is empty, all explicitly provided vars are allowed.
     for (key, value) in &wasi_config.env_vars {
+        if !security.env_allow_list.is_empty() && !security.env_allow_list.contains(key) {
+            tracing::warn!(
+                key = %key,
+                "env var blocked by allow-list"
+            );
+            continue;
+        }
         builder.env(key, value);
     }
 
@@ -100,8 +109,9 @@ fn configure_network(builder: &mut WasiCtxBuilder, security: &SecurityConfig) {
         builder.socket_addr_check(move |addr, _addr_use| {
             let patterns = Arc::clone(&patterns);
             Box::pin(async move {
-                let host = addr.ip().to_string();
-                is_host_allowed(&host, &patterns)
+                // Use is_addr_allowed: direct IP connections require explicit
+                // IP in the allow list — hostname patterns do not match IPs.
+                is_addr_allowed(&addr, &patterns)
             })
         });
         builder.allow_ip_name_lookup(true);

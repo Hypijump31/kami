@@ -1,0 +1,19 @@
+[tool]
+id = "dev.kami.hello-world"
+name = "hello-world"
+version = "0.1.0"
+wasm = "target/wasm32-wasip2/release/hello_world.wasm"
+
+[mcp]
+description = "Returns a greeting for the given name"
+
+[[mcp.arguments]]
+name = "name"
+type = "string"
+description = "Name to greet"
+required = true
+
+[security]
+fs_access = "none"
+max_memory_mb = 16
+max_execution_ms = 1000

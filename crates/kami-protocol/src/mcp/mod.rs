@@ -15,8 +15,7 @@ pub mod methods {
     /// Handshake request.
     pub const INITIALIZE: &str = "initialize";
     /// Client notification after successful initialization.
-    pub const NOTIFICATIONS_INITIALIZED: &str =
-        "notifications/initialized";
+    pub const NOTIFICATIONS_INITIALIZED: &str = "notifications/initialized";
     /// List available tools.
     pub const TOOLS_LIST: &str = "tools/list";
     /// Execute a tool.

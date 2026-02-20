@@ -1,0 +1,31 @@
+[tool]
+id = "dev.kami.json-transform"
+name = "json-transform"
+version = "0.1.0"
+wasm = "target/wasm32-wasip2/release/json_transform.wasm"
+
+[mcp]
+description = "Transforms JSON data — pick keys, flatten nested objects, or count elements"
+
+[[mcp.arguments]]
+name = "action"
+type = "string"
+description = "Transformation: pick, flatten, or count"
+required = true
+
+[[mcp.arguments]]
+name = "data"
+type = "object"
+description = "JSON object to transform"
+required = true
+
+[[mcp.arguments]]
+name = "keys"
+type = "array"
+description = "Keys to pick (required for 'pick' action)"
+required = false
+
+[security]
+fs_access = "none"
+max_memory_mb = 16
+max_execution_ms = 1000

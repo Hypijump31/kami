@@ -9,3 +9,6 @@ kami-types = { workspace = true }
 wasmtime-wasi = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }

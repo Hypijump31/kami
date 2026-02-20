@@ -399,11 +399,20 @@ kami exec dev.example.my-tool --input '{"message":"test"}'
 ### Install
 
 ```bash
-# From a directory containing tool.toml + .wasm
+# From a local directory containing tool.toml + .wasm
 kami install ./my-tool/
 
 # From a tool.toml file directly
 kami install ./my-tool/tool.toml
+
+# From a URL (downloads .zip archive)
+kami install https://example.com/my-tool-v1.0.0.zip
+
+# From a GitHub release
+kami install your-org/my-tool@v1.0.0
+
+# Search the community registry
+kami search "my tool"
 ```
 
 ### Verify

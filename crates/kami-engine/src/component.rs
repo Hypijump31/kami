@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use wasmtime::component::{Component, ComponentNamedList, Instance, Lift, Linker, Lower};
+use wasmtime::component::{Component, Instance, Linker};
 use wasmtime::{Engine, Store};
 
 use crate::error::EngineError;
@@ -17,10 +17,7 @@ pub fn load_component(engine: &Engine, bytes: &[u8]) -> Result<Component, Engine
 }
 
 /// Loads a WASM component from a file path.
-pub fn load_component_from_file(
-    engine: &Engine,
-    path: &Path,
-) -> Result<Component, EngineError> {
+pub fn load_component_from_file(engine: &Engine, path: &Path) -> Result<Component, EngineError> {
     Component::from_file(engine, path).map_err(|e| EngineError::Compilation {
         reason: format!("failed to load component from {}", path.display()),
         source: e,
@@ -32,9 +29,10 @@ pub fn load_component_from_file(
 /// This linker is reusable across multiple instantiations.
 pub fn create_linker(engine: &Engine) -> Result<Linker<HostState>, EngineError> {
     let mut linker = Linker::new(engine);
-    wasmtime_wasi::add_to_linker_async(&mut linker).map_err(|e| {
-        EngineError::Config(format!("failed to add WASI to linker: {e}"))
-    })?;
+    wasmtime_wasi::add_to_linker_async(&mut linker)
+        .map_err(|e| EngineError::Config(format!("WASI linker: {e}")))?;
+    crate::bindings::KamiTool::add_to_linker(&mut linker, |s| s)
+        .map_err(|e| EngineError::Config(format!("host linker: {e}")))?;
     Ok(linker)
 }
 
@@ -61,11 +59,11 @@ pub async fn call_tool_run(
     instance: &Instance,
     input: &str,
 ) -> Result<Result<String, String>, EngineError> {
-    let run_func = find_typed_func::<(String,), (Result<String, String>,)>(
-        &mut *store,
-        instance,
-        "run",
-    )?;
+    let run_func = instance
+        .get_typed_func::<(String,), (Result<String, String>,)>(&mut *store, "run")
+        .map_err(|_| EngineError::ExportNotFound {
+            name: "run".to_string(),
+        })?;
 
     let (result,) = run_func
         .call_async(&mut *store, (input.to_string(),))
@@ -82,21 +80,4 @@ pub async fn call_tool_run(
         })?;
 
     Ok(result)
-}
-
-/// Looks up a typed export function by name.
-fn find_typed_func<Params, Results>(
-    store: &mut Store<HostState>,
-    instance: &Instance,
-    name: &str,
-) -> Result<wasmtime::component::TypedFunc<Params, Results>, EngineError>
-where
-    Params: ComponentNamedList + Lower + Send + Sync,
-    Results: ComponentNamedList + Lift + Send + Sync,
-{
-    instance
-        .get_typed_func::<Params, Results>(store, name)
-        .map_err(|_| EngineError::ExportNotFound {
-            name: name.to_string(),
-        })
 }

@@ -163,19 +163,83 @@ kami -vv serve    # trace
 
 ### Commands
 
-#### `kami install <PATH>`
+#### `kami install <SOURCE>`
 
-Install a WASM tool from a directory or tool.toml file.
+Install a WASM tool from a local path, URL, or GitHub shorthand.
 
 ```bash
-kami install ./my-tool/            # From directory
+kami install ./my-tool/            # From local directory
 kami install ./my-tool/tool.toml   # From manifest file
+kami install https://cdn.io/t.zip  # From URL (.zip archive)
+kami install owner/repo@v1.0.0     # From GitHub release
 kami install --db ./reg.db ./tool/ # Custom database
 ```
 
 | Option | Description |
 |--------|-------------|
 | `--db <PATH>` | Custom database path |
+
+#### `kami search <QUERY>`
+
+Search the remote community registry for tools.
+
+```bash
+kami search "json transform"       # Search by keyword
+kami search fetch --registry URL   # Custom registry index
+```
+
+| Option | Description |
+|--------|-------------|
+| `--registry <URL>` | Custom registry index URL |
+
+#### `kami publish`
+
+Generate a registry entry for publishing your tool to the community index.
+
+```bash
+kami publish                              # From current directory
+kami publish ./my-tool --source org/repo@v1.0.0  # Explicit source
+kami publish --json                       # Output JSON only
+```
+
+| Option | Description |
+|--------|-------------|
+| `--source <SHORTHAND>` | GitHub shorthand (owner/repo@tag) |
+| `--json` | Output JSON entry only (machine-readable) |
+
+#### `kami keygen`
+
+Generate an Ed25519 signing keypair for plugin signatures.
+
+```bash
+kami keygen                              # Keys saved to ~/.kami/keys/
+kami keygen --output ./my-keys/          # Custom output directory
+kami keygen --force                      # Overwrite existing keys
+```
+
+| Option | Description |
+|--------|-------------|
+| `--output <DIR>` | Custom output directory for keys |
+| `--force` | Overwrite existing keypair |
+
+Keys are stored as:
+- `~/.kami/keys/kami_signing_key` — Secret key (hex, 64 chars)
+- `~/.kami/keys/kami_signing_key.pub` — Public key (hex, 64 chars)
+
+#### `kami sign <TOOL_DIR>`
+
+Sign a WASM plugin with your Ed25519 secret key.
+
+```bash
+kami sign ./my-tool/                     # Sign using default keys
+kami sign ./my-tool/ --keys ./my-keys/   # Custom keys directory
+```
+
+| Option | Description |
+|--------|-------------|
+| `--keys <DIR>` | Custom keys directory |
+
+Output includes the signature and public key to add to `tool.toml`.
 
 #### `kami list [--filter NAME]`
 
@@ -264,6 +328,23 @@ kami serve --db /var/lib/kami/registry.db
 | `--concurrency <N>` | 4 | Max concurrent tool executions |
 | `--cache-size <N>` | 32 | Component cache size |
 | `--db <PATH>` | `.kami/registry.db` | Database path |
+
+#### `kami verify <TOOL_ID>`
+
+Verify WASM integrity (SHA-256) and optionally verify Ed25519 signature.
+
+```bash
+kami verify dev.example.fetch-url
+kami verify dev.example.fetch-url --public-key ~/.kami/keys/kami_signing_key.pub
+kami verify dev.example.fetch-url --public-key abc123...  # Hex string
+```
+
+| Option | Description |
+|--------|-------------|
+| `--public-key <KEY>` | Public key as hex string or file path |
+| `--db <PATH>` | Custom database path |
+
+Without `--public-key`, only SHA-256 is checked. If the tool's manifest has a `signer_public_key`, it is used automatically.
 
 ---
 
