@@ -111,3 +111,33 @@ async fn lru_evicts_least_recently_used() {
     assert!(cache.get(&t1).await.is_none(), "t1 should be evicted");
     assert!(cache.get(&t2).await.is_some(), "t2 should exist");
 }
+
+#[tokio::test]
+async fn clear_empties_cache_and_is_empty() {
+    let cache = ComponentCache::new(4);
+    let id = ToolId::new("dev.test.clr").expect("id");
+    let entry = CachedComponent {
+        component: make_component(),
+        security: SecurityConfig::default(),
+        wasm_path: "clr.wasm".to_string(),
+    };
+    cache.insert(&id, entry).await;
+    assert!(!cache.is_empty().await);
+    cache.clear().await;
+    assert!(cache.is_empty().await);
+    assert_eq!(cache.len().await, 0);
+}
+
+#[tokio::test]
+async fn reinserting_same_key_keeps_count_at_one() {
+    let cache = ComponentCache::new(4);
+    let id = ToolId::new("dev.test.ri").expect("id");
+    let mk = || CachedComponent {
+        component: make_component(),
+        security: SecurityConfig::default(),
+        wasm_path: "ri.wasm".to_string(),
+    };
+    cache.insert(&id, mk()).await;
+    cache.insert(&id, mk()).await;
+    assert_eq!(cache.len().await, 1);
+}

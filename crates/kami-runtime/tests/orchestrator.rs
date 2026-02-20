@@ -3,7 +3,7 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-
+use kami_engine::{create_engine, create_linker, InstanceConfig};
 use kami_registry::{RepositoryError, ToolQuery, ToolRepository};
 use kami_runtime::{KamiRuntime, RuntimeConfig, RuntimeError};
 use kami_types::{Tool, ToolId};
@@ -108,4 +108,34 @@ async fn orchestrator_metrics_track_failed_execution() {
     assert_eq!(snap.successful_executions, 0);
     assert_eq!(snap.cache_misses, 1);
     assert_eq!(snap.cache_hits, 0);
+}
+
+#[tokio::test]
+async fn orchestrator_shutdown_completes() {
+    let runtime = make_runtime();
+    // Should drain with no in-flight tasks and return immediately.
+    runtime.shutdown().await;
+}
+
+#[tokio::test]
+async fn orchestrator_with_engine_creates_valid_runtime() {
+    let instance_config = InstanceConfig::default();
+    let engine = create_engine(&instance_config).expect("engine");
+    let linker = create_linker(&engine).expect("linker");
+    let config = RuntimeConfig {
+        cache_size: 2,
+        max_concurrent: 1,
+        epoch_interruption: false,
+    };
+    let runtime = KamiRuntime::with_engine(engine, linker, config, Arc::new(EmptyRepository));
+    let id = ToolId::new("dev.test.wengine").expect("id");
+    let result = runtime.execute(&id, "{}").await;
+    assert!(matches!(result, Err(RuntimeError::ToolNotFound { .. })));
+}
+
+#[tokio::test]
+async fn orchestrator_resolver_accessible() {
+    let runtime = make_runtime();
+    // resolver() should be accessible without panic
+    let _resolver = runtime.resolver();
 }

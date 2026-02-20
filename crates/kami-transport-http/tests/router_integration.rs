@@ -37,6 +37,22 @@ async fn health_returns_ok() {
 }
 
 #[tokio::test]
+async fn ready_endpoint_returns_ok() {
+    let app = build_router(make_state(None));
+    let req = Request::builder()
+        .uri("/health/ready")
+        .body(Body::empty())
+        .expect("req");
+    let resp = app.oneshot(req).await.expect("resp");
+    assert_eq!(resp.status(), 200);
+    let body = axum::body::to_bytes(resp.into_body(), 1024)
+        .await
+        .expect("body");
+    let text = String::from_utf8(body.to_vec()).expect("utf8");
+    assert!(text.contains("ready"));
+}
+
+#[tokio::test]
 async fn mcp_parse_error() {
     let app = build_router(make_state(None));
     let req = Request::builder()

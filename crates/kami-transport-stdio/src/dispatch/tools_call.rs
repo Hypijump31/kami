@@ -71,3 +71,44 @@ pub(crate) async fn handle_tools_call(
         )),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use kami_runtime::{KamiRuntime, RuntimeConfig};
+    use kami_store_sqlite::SqliteToolRepository;
+    use std::sync::Arc;
+
+    fn make_runtime() -> KamiRuntime {
+        let repo = Arc::new(SqliteToolRepository::open_in_memory().expect("db"));
+        KamiRuntime::new(
+            RuntimeConfig {
+                cache_size: 2,
+                max_concurrent: 1,
+                epoch_interruption: false,
+            },
+            repo,
+        )
+        .expect("runtime")
+    }
+
+    #[tokio::test]
+    async fn tools_call_no_params_returns_error() {
+        let result = handle_tools_call(RequestId::Number(1), &None, &make_runtime()).await;
+        assert!(matches!(result, JsonRpcOutput::Error(_)));
+    }
+
+    #[tokio::test]
+    async fn tools_call_invalid_params_type_returns_error() {
+        let params = serde_json::json!(42);
+        let result = handle_tools_call(RequestId::Number(2), &Some(params), &make_runtime()).await;
+        assert!(matches!(result, JsonRpcOutput::Error(_)));
+    }
+
+    #[tokio::test]
+    async fn tools_call_invalid_tool_name_returns_error() {
+        let params = serde_json::json!({"name": "bad", "arguments": {}});
+        let result = handle_tools_call(RequestId::Number(3), &Some(params), &make_runtime()).await;
+        assert!(matches!(result, JsonRpcOutput::Error(_)));
+    }
+}

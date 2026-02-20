@@ -58,6 +58,46 @@ during code generation.
 
 ---
 
+## Continue.dev
+
+[Continue.dev](https://continue.dev) is an open-source AI coding assistant for VS Code and JetBrains that supports MCP servers.
+
+Edit `~/.continue/config.json` (macOS/Linux) or `%USERPROFILE%\.continue\config.json` (Windows):
+
+```json
+{
+  "mcpServers": [
+    {
+      "name": "kami",
+      "command": "kami",
+      "args": ["serve", "--transport", "stdio"]
+    }
+  ]
+}
+```
+
+### With a custom registry
+
+```json
+{
+  "mcpServers": [
+    {
+      "name": "kami",
+      "command": "kami",
+      "args": ["serve", "--transport", "stdio", "--db", "/path/to/registry.db"]
+    }
+  ]
+}
+```
+
+After saving, reload the Continue extension. KAMI tools will appear in the
+`@kami` context menu during chat.
+
+> **Note:** MCP support in Continue.dev requires v0.8.0 or later.
+> Check the [Continue.dev docs](https://docs.continue.dev) for the latest config format.
+
+---
+
 ## HTTP Transport
 
 For agents that prefer HTTP/SSE, start KAMI with the HTTP transport:

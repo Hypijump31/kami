@@ -105,4 +105,22 @@ mod tests {
         // May fail on CI without permissions, but should not panic
         let _ = result;
     }
+
+    #[test]
+    fn data_dir_returns_a_path() {
+        let d = data_dir();
+        assert!(!d.as_os_str().is_empty());
+    }
+
+    #[test]
+    fn plugins_dir_is_within_data_dir() {
+        let p = plugins_dir();
+        assert_eq!(p.file_name().and_then(|s| s.to_str()), Some("plugins"));
+    }
+
+    #[test]
+    fn dirs_or_fallback_returns_nonempty() {
+        let d = dirs_or_fallback();
+        assert!(!d.as_os_str().is_empty());
+    }
 }

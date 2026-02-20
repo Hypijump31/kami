@@ -110,11 +110,9 @@ fn print_publish_instructions(json: &str, entry: &RegistryEntry, source: &str) {
     println!("\nInstall: kami install {source}");
     println!("Search:  kami search {}", entry.name);
 }
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
     #[test]
     fn registry_entry_serializes_to_json() {
         let entry = RegistryEntry {
@@ -131,9 +129,8 @@ mod tests {
         assert!(json.contains("dev.test.echo"));
         assert!(json.contains("wasm_sha256"));
     }
-
     #[test]
-    fn registry_entry_has_all_fields() {
+    fn registry_entry_omits_none_signature() {
         let entry = RegistryEntry {
             id: "dev.test.x".to_string(),
             name: "x".to_string(),
@@ -144,9 +141,7 @@ mod tests {
             signature: None,
             signer_public_key: None,
         };
-        let val: serde_json::Value = serde_json::to_value(&entry).expect("to_value");
-        assert!(val.get("id").is_some());
-        assert!(val.get("source").is_some());
-        assert!(val.get("wasm_sha256").is_some());
+        let json = serde_json::to_string(&entry).expect("serialize");
+        assert!(!json.contains("\"signature\""));
     }
 }

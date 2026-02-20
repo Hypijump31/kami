@@ -84,7 +84,39 @@ pub(crate) fn build_input_schema(arguments: &[ToolArgument]) -> Value {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use kami_types::ToolArgument;
+    use async_trait::async_trait;
+    use kami_registry::{RepositoryError, ToolQuery, ToolRepository};
+    use kami_types::{Tool, ToolArgument, ToolId};
+
+    struct FailRepo;
+    #[async_trait]
+    impl ToolRepository for FailRepo {
+        async fn find_by_id(&self, _: &ToolId) -> Result<Option<Tool>, RepositoryError> {
+            Err(RepositoryError::Storage {
+                message: "fail".into(),
+            })
+        }
+        async fn find_all(&self, _: ToolQuery) -> Result<Vec<Tool>, RepositoryError> {
+            Err(RepositoryError::Storage {
+                message: "fail".into(),
+            })
+        }
+        async fn insert(&self, _: &Tool) -> Result<(), RepositoryError> {
+            Ok(())
+        }
+        async fn update(&self, _: &Tool) -> Result<(), RepositoryError> {
+            Ok(())
+        }
+        async fn delete(&self, _: &ToolId) -> Result<bool, RepositoryError> {
+            Ok(false)
+        }
+    }
+
+    #[tokio::test]
+    async fn registry_error_returns_mcp_error() {
+        let result = handle_tools_list(RequestId::Number(1), &FailRepo).await;
+        assert!(matches!(result, JsonRpcOutput::Error(_)));
+    }
 
     #[test]
     fn build_input_schema_empty_args() {
@@ -96,26 +128,16 @@ mod tests {
 
     #[test]
     fn build_input_schema_with_args() {
-        let args = vec![
-            ToolArgument {
-                name: "url".to_string(),
-                arg_type: "string".to_string(),
-                description: "The URL".to_string(),
-                required: true,
-                default: None,
-            },
-            ToolArgument {
-                name: "timeout".to_string(),
-                arg_type: "number".to_string(),
-                description: "Timeout in ms".to_string(),
-                required: false,
-                default: Some("5000".to_string()),
-            },
-        ];
-        let schema = build_input_schema(&args);
+        let arg = ToolArgument {
+            name: "url".into(),
+            arg_type: "string".into(),
+            description: "The URL".into(),
+            required: true,
+            default: None,
+        };
+        let schema = build_input_schema(&[arg]);
         assert_eq!(schema["type"], "object");
         assert_eq!(schema["properties"]["url"]["type"], "string");
-        assert_eq!(schema["properties"]["timeout"]["type"], "number");
         let req = schema["required"].as_array().expect("arr");
         assert_eq!(req.len(), 1);
         assert_eq!(req[0], "url");

@@ -114,11 +114,9 @@ pub fn github_release_url(shorthand: &str) -> String {
         format!("https://github.com/{path}/releases/download/{tag}/plugin.zip")
     }
 }
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
     #[test]
     fn is_url_detects_http() {
         assert!(is_url("https://example.com/plugin.zip"));
@@ -126,15 +124,14 @@ mod tests {
         assert!(!is_url("./local/path"));
         assert!(!is_url("owner/repo"));
     }
-
     #[test]
     fn github_shorthand_patterns() {
         assert!(is_github_shorthand("owner/repo"));
         assert!(is_github_shorthand("kami-tools/fetch@v1.0.0"));
         assert!(!is_github_shorthand("https://example.com"));
         assert!(!is_github_shorthand("./local/path"));
+        assert!(!is_github_shorthand("org/repo/extra")); // 3 parts → false
     }
-
     #[test]
     fn github_url_generation() {
         let latest = github_release_url("kami/fetch");
@@ -142,10 +139,15 @@ mod tests {
         let tagged = github_release_url("kami/fetch@v1.2.0");
         assert!(tagged.contains("v1.2.0/plugin.zip"));
     }
-
     #[test]
     fn strip_flattens_nested() {
         let raw = Path::new("my-plugin-v1/tool.toml");
+        let dest = Path::new("/tmp/out");
+        assert_eq!(strip_top_dir(raw, dest), dest.join("tool.toml"));
+    }
+    #[test]
+    fn strip_single_component_keeps_as_is() {
+        let raw = Path::new("tool.toml");
         let dest = Path::new("/tmp/out");
         assert_eq!(strip_top_dir(raw, dest), dest.join("tool.toml"));
     }

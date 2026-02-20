@@ -48,7 +48,7 @@ ls target/release/kami.exe    # Windows
 ### Verify
 
 ```bash
-# Run all tests (89+)
+# Run all tests (402+)
 cargo test
 
 # Lint (must be clean)

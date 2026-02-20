@@ -42,3 +42,36 @@ pub(crate) fn handle_initialize(id: RequestId, params: &Option<Value>) -> JsonRp
         )),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn initialize_no_params_returns_success() {
+        let id = RequestId::Number(1);
+        let result = handle_initialize(id, &None);
+        assert!(matches!(result, JsonRpcOutput::Success(_)));
+    }
+
+    #[test]
+    fn initialize_with_valid_params_returns_success() {
+        let id = RequestId::Number(2);
+        let params = serde_json::json!({
+            "protocolVersion": "2024-11-05",
+            "capabilities": {},
+            "clientInfo": {"name": "test", "version": "1.0"}
+        });
+        let result = handle_initialize(id, &Some(params));
+        assert!(matches!(result, JsonRpcOutput::Success(_)));
+    }
+
+    #[test]
+    fn initialize_with_non_object_params_returns_error() {
+        let id = RequestId::Number(3);
+        // A scalar is not a valid InitializeParams object
+        let params = serde_json::json!(42);
+        let result = handle_initialize(id, &Some(params));
+        assert!(matches!(result, JsonRpcOutput::Error(_)));
+    }
+}

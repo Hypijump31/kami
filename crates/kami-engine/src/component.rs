@@ -81,3 +81,26 @@ pub async fn call_tool_run(
 
     Ok(result)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use wasmtime::Config;
+
+    fn async_engine() -> Engine {
+        let mut config = Config::new();
+        config.async_support(true);
+        Engine::new(&config).expect("async engine")
+    }
+
+    #[test]
+    fn create_linker_registers_wasi_and_host() {
+        assert!(create_linker(&async_engine()).is_ok());
+    }
+
+    #[test]
+    fn load_from_nonexistent_file_is_compilation_error() {
+        let result = load_component_from_file(&async_engine(), Path::new("/no/such/tool.wasm"));
+        assert!(matches!(result, Err(EngineError::Compilation { .. })));
+    }
+}

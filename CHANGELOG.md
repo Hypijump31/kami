@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (Session 24 — Documentation Completion)
+- **`GET /health/ready`** readiness probe endpoint in `kami-transport-http` (completes Annexe B v1.0)
+- **Continue.dev integration guide** in `docs/INTEGRATION.md` (stdio + custom registry, v0.8.0+)
+- **4th example** `http-fetch` added to examples table in `docs/GETTING_STARTED.md`
+- **1 new test** `ready_endpoint_returns_ok` in `kami-transport-http/tests/router_integration.rs`
+- **403 tests** total, clippy clean, fmt clean
+
+### Fixed (Session 24)
+- `docs/GETTING_STARTED.md`: `your-org` placeholders replaced with `Hypijump31`, step numbering fixed (duplicate "5." → "6.")
+- `docs/DEPLOYMENT.md`: test count updated from `89+` to `402+`
+- `docs/INTEGRATION.md` endpoints table: `GET /health/ready` now points to an implemented endpoint
+
 ### Added (Session 23 — Cryptographic Plugin Signatures)
 - **Ed25519 plugin signing**: Full cryptographic signature workflow for WASM tools
 - **`kami keygen`**: Generate Ed25519 keypair to `~/.kami/keys/` (with `--force` overwrite, Unix 0o600 perms)

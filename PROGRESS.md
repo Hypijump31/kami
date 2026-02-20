@@ -135,7 +135,7 @@
 
 ### Build Status
 - `cargo build` - PASS
-- `cargo test` - **402 tests PASS** (+ 3 ignored doc-tests)
+- `cargo test` - **403 tests PASS** (+ 3 ignored doc-tests)
 - `cargo clippy --all-targets` - CLEAN (0 warnings)
 - `cargo fmt --check` - CLEAN
 - `cargo audit` - CLEAN (4 known wasmtime advisories ignored via `.cargo/audit.toml`)
@@ -379,6 +379,13 @@ All 6 phases of the KAMI roadmap are implemented:
 - **Registry template** (`registry/`): `index.json` (3 seed entries), `schema.json` (JSON Schema), `validate.yml` CI workflow
 - **CI validation pipeline**: JSON syntax, schema validation, duplicate ID check, source URL reachability
 - **391 tests passing, clippy clean, fmt clean**
+
+### Session 24 (Documentation Completion)
+- **`GET /health/ready`** readiness probe: new endpoint in `kami-transport-http/src/router.rs` + test `ready_endpoint_returns_ok` in `tests/router_integration.rs` — completes Annexe B v1.0 health probes item
+- **Continue.dev integration guide**: new section in `docs/INTEGRATION.md` covering stdio + custom registry config, version requirements
+- **Stale placeholder fixes** in `docs/GETTING_STARTED.md`: `your-org` → `Hypijump31`, duplicate step "5." → "6.", added `http-fetch` example to table
+- **Test count corrected** in `docs/DEPLOYMENT.md`: `89+` → `402+`
+- **403 tests passing**, clippy clean, fmt clean
 
 ### Session 23 (Cryptographic Plugin Signatures)
 - **Ed25519 plugin signing**: Full cryptographic signature workflow (keygen → sign → verify → enforce at execution)

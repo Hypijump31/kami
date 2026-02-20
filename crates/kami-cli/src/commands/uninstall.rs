@@ -73,4 +73,41 @@ mod tests {
         };
         assert!(execute(&args).await.is_err());
     }
+
+    #[tokio::test]
+    async fn uninstall_existing_tool_succeeds() {
+        use kami_registry::ToolRepository;
+        use kami_store_sqlite::SqliteToolRepository;
+        use kami_types::{SecurityConfig, Tool, ToolId, ToolManifest, ToolVersion};
+        let dir = tempfile::tempdir().expect("tmp");
+        let db = dir.path().join("uni3.db").to_str().expect("u").to_string();
+        {
+            let repo = SqliteToolRepository::open(&db).expect("open");
+            repo.insert(&Tool {
+                manifest: ToolManifest {
+                    id: ToolId::new("dev.test.del").expect("id"),
+                    name: "del".into(),
+                    version: ToolVersion::new(1, 0, 0),
+                    wasm: "del.wasm".into(),
+                    description: "d".into(),
+                    arguments: vec![],
+                    security: SecurityConfig::default(),
+                    wasm_sha256: None,
+                    signature: None,
+                    signer_public_key: None,
+                },
+                install_path: "/t".into(),
+                enabled: true,
+                pinned_version: None,
+                updated_at: None,
+            })
+            .await
+            .expect("insert");
+        }
+        let args = UninstallArgs {
+            tool: "dev.test.del".into(),
+            db: Some(db),
+        };
+        assert!(execute(&args).await.is_ok());
+    }
 }

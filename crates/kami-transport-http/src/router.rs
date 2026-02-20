@@ -1,5 +1,5 @@
 //! Axum router for the MCP HTTP/JSON-RPC transport.
-//! Exposes `POST /mcp` for requests and `GET /health` for liveness checks.
+//! Routes: `POST /mcp` (requests), `GET /health` (liveness), `GET /health/ready` (readiness).
 
 use std::sync::Arc;
 
@@ -31,11 +31,17 @@ pub fn build_router(state: AppState) -> Router {
     Router::new()
         .route("/mcp", post(handle_mcp))
         .route("/health", get(handle_health))
+        .route("/health/ready", get(handle_ready))
         .with_state(state)
 }
 
 async fn handle_health() -> impl IntoResponse {
     Json(json!({"status": "ok", "service": "kami"}))
+}
+
+/// Readiness probe — returns `200 OK` once the server is accepting requests.
+async fn handle_ready() -> impl IntoResponse {
+    Json(json!({"status": "ready", "service": "kami"}))
 }
 
 async fn handle_mcp(

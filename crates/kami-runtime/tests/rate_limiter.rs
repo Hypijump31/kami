@@ -58,3 +58,39 @@ fn unlimited_when_zero() {
         assert!(limiter.check(&tool("dev.test.f")));
     }
 }
+
+#[test]
+fn global_zero_per_tool_enforced() {
+    // global=0 (skip), per_tool=1 should still deny after 1 request
+    let config = RateLimitConfig {
+        per_tool: 1,
+        global: 0,
+        ..Default::default()
+    };
+    let limiter = RateLimiter::new(&config);
+    let id = tool("dev.test.g");
+    assert!(limiter.check(&id));
+    assert!(!limiter.check(&id));
+}
+
+#[test]
+fn per_tool_zero_global_enforced() {
+    // per_tool=0 (skip), global=2 should deny after 2 requests
+    let config = RateLimitConfig {
+        per_tool: 0,
+        global: 2,
+        ..Default::default()
+    };
+    let limiter = RateLimiter::new(&config);
+    assert!(limiter.check(&tool("dev.test.h")));
+    assert!(limiter.check(&tool("dev.test.i")));
+    assert!(!limiter.check(&tool("dev.test.j")));
+}
+
+#[test]
+fn default_config_values() {
+    let config = RateLimitConfig::default();
+    assert_eq!(config.per_tool, 100);
+    assert_eq!(config.global, 1000);
+    assert_eq!(config.window.as_secs(), 60);
+}

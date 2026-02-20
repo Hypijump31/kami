@@ -8,7 +8,7 @@ the Model Context Protocol (MCP).
 ### From source
 
 ```bash
-git clone https://github.com/your-org/kami.git
+git clone https://github.com/Hypijump31/kami.git
 cd kami
 cargo build --release
 # Binary at target/release/kami
@@ -16,7 +16,7 @@ cargo build --release
 
 ### Pre-built binaries
 
-Download from the [Releases](https://github.com/your-org/kami/releases)
+Download from the [Releases](https://github.com/Hypijump31/kami/releases)
 page. Available for Linux (x86_64, aarch64), macOS (aarch64), and
 Windows (x86_64).
 
@@ -67,10 +67,10 @@ kami search "json transform"
 ### 5. Execute the tool
 
 ```bash
-kami exec dev.your-org.my-tool '{"key": "value"}'
+kami exec dev.example.my-tool '{"key": "value"}'
 ```
 
-### 5. Serve tools to AI agents
+### 6. Serve tools to AI agents
 
 ```bash
 kami serve --transport stdio
@@ -141,13 +141,14 @@ max_execution_ms = 5000
 
 ## Examples
 
-Three example tools are included in the `examples/` directory:
+Four example tools are included in the `examples/` directory:
 
-| Example          | Description                    |
-|-----------------|--------------------------------|
-| `hello-world`   | Minimal greeting tool          |
-| `echo`           | Echoes JSON input unchanged   |
-| `json-transform` | Pick keys, flatten, or count  |
+| Example          | Description                             |
+|-----------------|-----------------------------------------|
+| `hello-world`   | Minimal greeting tool                   |
+| `echo`           | Echoes JSON input unchanged            |
+| `json-transform` | Pick keys, flatten, or count           |
+| `http-fetch`    | Validate and fetch from allow-listed URLs |
 
 ```bash
 cd examples/hello-world

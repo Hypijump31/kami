@@ -138,3 +138,12 @@ async fn update_all(repo: &dyn ToolRepository) -> anyhow::Result<()> {
     output::print_success(&format!("Updated {updated} tool(s), skipped {skipped}"));
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn chrono_now_is_numeric_epoch_secs() {
+        assert!(chrono_now().parse::<u64>().is_ok());
+    }
+}

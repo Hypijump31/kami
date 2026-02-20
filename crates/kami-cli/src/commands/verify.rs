@@ -56,7 +56,6 @@ pub async fn execute(args: &VerifyArgs) -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Checks the SHA-256 hash of the WASM file.
 fn verify_sha256(
     args: &VerifyArgs,
     wasm_path: &Path,
@@ -85,7 +84,6 @@ fn verify_sha256(
     Ok(())
 }
 
-/// Checks the Ed25519 signature if available.
 fn verify_signature(
     args: &VerifyArgs,
     wasm_path: &Path,
@@ -112,7 +110,6 @@ fn verify_signature(
     Ok(())
 }
 
-/// Resolves the public key to use for verification (flag > stored).
 fn resolve_verify_key(args: &VerifyArgs, tool: &kami_types::Tool) -> anyhow::Result<String> {
     if let Some(ref key) = args.public_key {
         return crate::commands::keygen::resolve_public_key(key);
@@ -121,4 +118,31 @@ fn resolve_verify_key(args: &VerifyArgs, tool: &kami_types::Tool) -> anyhow::Res
         .signer_public_key
         .clone()
         .ok_or_else(|| anyhow::anyhow!("no public key stored or provided (use --public-key)"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn execute_invalid_id_fails() {
+        let dir = tempfile::tempdir().expect("tmp");
+        let args = VerifyArgs {
+            tool_id: "bad".into(),
+            db: Some(dir.path().join("v.db").to_str().expect("p").into()),
+            public_key: None,
+        };
+        assert!(execute(&args).await.is_err());
+    }
+
+    #[tokio::test]
+    async fn execute_not_found_fails() {
+        let dir = tempfile::tempdir().expect("tmp");
+        let args = VerifyArgs {
+            tool_id: "dev.test.noexist".into(),
+            db: Some(dir.path().join("v2.db").to_str().expect("p").into()),
+            public_key: None,
+        };
+        assert!(execute(&args).await.is_err());
+    }
 }
