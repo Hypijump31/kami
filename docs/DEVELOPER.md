@@ -1,3 +1,5 @@
+<p align="center"><img src="../site/assets/logo.png" alt="KAMI" height="48"></p>
+
 # KAMI - Tool Developer Guide
 
 > How to build, test, and publish WASM tools for KAMI.

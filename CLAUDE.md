@@ -616,4 +616,4 @@ max_execution_ms = 5000
 - [x] `kami publish` — génération d'entrée registry + instructions PR
 - [x] Registry index template (index.json + schema.json + CI validate)
 - [x] Signature cryptographique des plugins (Ed25519: keygen, sign, verify)
-- [ ] Registry index officiel hébergé (kami-tools/registry sur GitHub)
+- [x] Registry index officiel hébergé (Hypijump31/kami-registry sur GitHub)

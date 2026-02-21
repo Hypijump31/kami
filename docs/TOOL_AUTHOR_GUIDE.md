@@ -1,3 +1,5 @@
+<p align="center"><img src="../site/assets/logo.png" alt="KAMI" height="48"></p>
+
 # Tool Author Guide — Build Your First KAMI Tool in 10 Minutes
 
 > **Audience:** Developers who want to create tools that AI agents can call securely through KAMI.  
@@ -396,7 +398,7 @@ This outputs:
 }
 ```
 
-Then submit a PR to [kami-tools/registry](https://github.com/kami-tools/registry) to add it to `index.json`. CI validates automatically.
+Then submit a PR to [Hypijump31/kami-registry](https://github.com/Hypijump31/kami-registry) to add it to `index.json`. CI validates automatically.
 
 ### ZIP Archive Format
 

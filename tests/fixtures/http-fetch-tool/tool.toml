@@ -1,0 +1,20 @@
+[tool]
+id = "dev.kami.http-fetch"
+name = "http-fetch"
+version = "0.1.0"
+wasm = "http_fetch_tool.wasm"
+
+[mcp]
+description = "Fetches a URL via WASI HTTP outgoing handler"
+
+[[mcp.arguments]]
+name = "url"
+type = "string"
+description = "URL to fetch (http or https)"
+required = true
+
+[security]
+net_allow_list = []
+fs_access = "none"
+max_memory_mb = 64
+max_execution_ms = 10000

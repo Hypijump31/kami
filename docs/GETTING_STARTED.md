@@ -1,3 +1,5 @@
+<p align="center"><img src="../site/assets/logo.png" alt="KAMI" height="48"></p>
+
 # Getting Started with KAMI
 
 KAMI is a secure WASM tool orchestrator that runs sandboxed tools via

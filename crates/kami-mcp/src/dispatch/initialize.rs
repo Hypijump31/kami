@@ -69,7 +69,6 @@ mod tests {
     #[test]
     fn initialize_with_non_object_params_returns_error() {
         let id = RequestId::Number(3);
-        // A scalar is not a valid InitializeParams object
         let params = serde_json::json!(42);
         let result = handle_initialize(id, &Some(params));
         assert!(matches!(result, JsonRpcOutput::Error(_)));

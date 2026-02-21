@@ -135,12 +135,13 @@
 
 ### Build Status
 - `cargo build` - PASS
-- `cargo test` - **403 tests PASS** (+ 3 ignored doc-tests)
+- `cargo test` - **439 tests PASS** (+36 since last commit)
 - `cargo clippy --all-targets` - CLEAN (0 warnings)
 - `cargo fmt --check` - CLEAN
 - `cargo audit` - CLEAN (4 known wasmtime advisories ignored via `.cargo/audit.toml`)
 - `cargo tarpaulin` - **71.19% coverage** (1132/1590 lines)
 - `wasm32-wasip2` echo tool - COMPILES & EXECUTES E2E
+- `wasm32-wasip2` http-fetch tool - COMPILES & EXECUTES E2E (WASI HTTP outgoing)
 
 ## Tasks Accomplished
 
@@ -386,6 +387,41 @@ All 6 phases of the KAMI roadmap are implemented:
 - **Stale placeholder fixes** in `docs/GETTING_STARTED.md`: `your-org` → `Hypijump31`, duplicate step "5." → "6.", added `http-fetch` example to table
 - **Test count corrected** in `docs/DEPLOYMENT.md`: `89+` → `402+`
 - **403 tests passing**, clippy clean, fmt clean
+
+### Session 25 (Sprint 1.1 + Sprint 1.2 — v1.0 Roadmap)
+
+#### Sprint 1.1 — WASI HTTP Outgoing
+- **`wasmtime-wasi-http` integration** in `kami-engine`:
+  - Added `WasiHttpCtx` to `HostState` alongside `WasiCtx`; implemented `WasiHttpView` trait
+  - `send_request()` override enforces `net_allow_list` — `ConnectionRefused` when host not in list; deny-all when list is empty
+  - `add_only_http_to_linker_async()` registered in `create_linker()` for all WASM components
+  - `is_http_host_allowed()` supports exact and wildcard (`*.example.com`) patterns
+  - `host_state.set_net_allow_list()` wired into `executor.rs` from `SecurityConfig`
+- **http-fetch-tool fixture** (`tests/fixtures/http-fetch-tool/`):
+  - Real WASM component making HTTP GET via `wasi:http/outgoing-handler@0.2.2`
+  - WIT world with full WASI HTTP + io + clocks dependency tree; `generate_all` option for wit-bindgen
+  - `tool.toml` with deny-all security defaults
+- **E2E tests** (`kami-runtime/tests/e2e_http.rs`, 4 tests):
+  - `http_fetch_blocked_by_empty_allow_list` — no network, verifies deny-all
+  - `http_fetch_blocked_for_unlisted_host` — partial list blocks unmatched host
+  - `http_fetch_allowed_for_listed_host` — local tokio TCP server, verifies real HTTP round-trip
+  - `http_fetch_wildcard_allow_list` — IP not matched by `*.localhost` wildcard
+
+#### Sprint 1.2 — Extract McpHandler to `kami-mcp`
+- **New crate `kami-mcp`** (APPLICATION layer, 12th crate):
+  - `McpHandler` + `JsonRpcOutput` moved from `kami-transport-stdio` (ADAPTER) to `kami-mcp`
+  - `dispatch/{initialize, tools_list, tools_call}.rs` — unchanged logic, new home
+  - `to_json()` now returns `Result<String, serde_json::Error>` (no crate-specific error type)
+  - Fixes architecture violation: ADAPTER (`kami-transport-http`) no longer depends on ADAPTER (`kami-transport-stdio`) for the handler
+- **`kami-transport-stdio` simplified**:
+  - Removed: `handler.rs`, `dispatch/` module (moved to `kami-mcp`)
+  - Added: `kami-mcp` dep; re-exports `McpHandler` and `JsonRpcOutput` for backward compat
+  - `server.rs` updated to use `kami_mcp::McpHandler`
+- **`kami-transport-http` updated**:
+  - Replaced `kami-transport-stdio` dep with `kami-mcp` in both `[dependencies]` and `[dev-dependencies]`
+  - `router.rs` and `server.rs` import from `kami_mcp` directly
+  - Integration tests updated to `use kami_mcp::McpHandler`
+- **439 tests passing, clippy clean**
 
 ### Session 23 (Cryptographic Plugin Signatures)
 - **Ed25519 plugin signing**: Full cryptographic signature workflow (keygen → sign → verify → enforce at execution)

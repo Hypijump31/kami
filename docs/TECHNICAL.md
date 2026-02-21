@@ -1,3 +1,5 @@
+<p align="center"><img src="../site/assets/logo.png" alt="KAMI" height="48"></p>
+
 # KAMI - Technical Reference
 
 > Deep technical documentation for R&D engineers.

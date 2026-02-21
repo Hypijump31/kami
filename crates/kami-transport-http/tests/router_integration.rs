@@ -8,8 +8,8 @@ use tower::ServiceExt;
 
 use kami_runtime::{KamiRuntime, RuntimeConfig};
 use kami_store_sqlite::SqliteToolRepository;
+use kami_mcp::McpHandler;
 use kami_transport_http::{build_router, AppState};
-use kami_transport_stdio::McpHandler;
 
 fn make_state(token: Option<&str>) -> AppState {
     let repo = Arc::new(SqliteToolRepository::open_in_memory().expect("db"));

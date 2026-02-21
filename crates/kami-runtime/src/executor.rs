@@ -76,8 +76,9 @@ impl ToolExecutor for WasmToolExecutor {
         };
         let wasi_ctx = build_wasi_ctx(security, &wasi_config, None)?;
 
-        // 3. Create store with memory limits + fuel
-        let host_state = HostState::with_limits(wasi_ctx, max_memory);
+        // 3. Create store with memory limits + fuel + HTTP allow-list
+        let mut host_state = HostState::with_limits(wasi_ctx, max_memory);
+        host_state.set_net_allow_list(security.net_allow_list.clone());
         let mut store = create_store(&self.engine, host_state, fuel)?;
 
         // 4. Set epoch deadline (1 tick = timeout reached)

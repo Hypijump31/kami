@@ -12,8 +12,8 @@ use axum::{
 };
 use serde_json::{json, Value};
 
+use kami_mcp::McpHandler;
 use kami_protocol::{error_codes, JsonRpcNotification, JsonRpcRequest};
-use kami_transport_stdio::McpHandler;
 
 use crate::auth;
 

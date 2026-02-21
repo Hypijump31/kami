@@ -15,7 +15,6 @@ use kami_registry::ToolRepository;
 use kami_runtime::KamiRuntime;
 
 use crate::dispatch;
-use crate::error::TransportError;
 
 /// Handles MCP method dispatch over JSON-RPC.
 ///
@@ -37,12 +36,15 @@ pub enum JsonRpcOutput {
 
 impl JsonRpcOutput {
     /// Serializes the output to a JSON string.
-    pub fn to_json(&self) -> Result<String, TransportError> {
+    ///
+    /// # Errors
+    ///
+    /// Returns a `serde_json::Error` if serialization fails (extremely rare).
+    pub fn to_json(&self) -> Result<String, serde_json::Error> {
         match self {
             Self::Success(r) => serde_json::to_string(r),
             Self::Error(r) => serde_json::to_string(r),
         }
-        .map_err(|e| TransportError::Write(e.to_string()))
     }
 }
 

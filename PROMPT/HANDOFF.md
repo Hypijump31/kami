@@ -107,7 +107,7 @@ Items restants pour v1.0 :
 - Documentation utilisateur complète (Getting Started, Tool Dev Guide, Operator Guide, Architecture Guide, Security Model)
 - Guides d'intégration AI agents (Claude Desktop, Cursor, Continue.dev, LangChain)
 - Community : GitHub Discussions, issue templates ✅, CONTRIBUTING.md ✅
-- Registry index officiel hébergé (kami-tools/registry sur GitHub)
+- Registry index officiel hébergé ✅ (Hypijump31/kami-registry sur GitHub)
 
 ### Priorité 4 — Future-proofing
 - Préparer la migration wasmtime 27 → 28+ (wrapper opaque dans kami-engine)

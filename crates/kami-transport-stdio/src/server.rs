@@ -6,12 +6,12 @@
 
 use tracing::{debug, error, info, warn};
 
+use kami_mcp::{JsonRpcOutput, McpHandler};
 use kami_protocol::{
     error_codes, JsonRpcErrorResponse, JsonRpcNotification, JsonRpcRequest, RequestId,
 };
 
 use crate::error::TransportError;
-use crate::handler::{JsonRpcOutput, McpHandler};
 use crate::transport::StdioTransport;
 
 /// MCP server that reads from a transport and dispatches to a handler.
@@ -71,10 +71,7 @@ where
                             // Notifications must not receive a response.
                         }
                         Err(e) => {
-                            warn!(
-                                error = %e,
-                                "failed to parse JSON-RPC message"
-                            );
+                            warn!(error = %e, "failed to parse JSON-RPC message");
                             let err = JsonRpcErrorResponse::error(
                                 RequestId::Number(0),
                                 error_codes::PARSE_ERROR,
@@ -94,7 +91,7 @@ where
             Ok(json) => self.transport.write_line(&json).await,
             Err(e) => {
                 error!(error = %e, "failed to serialize response");
-                Err(e)
+                Err(TransportError::Write(e.to_string()))
             }
         }
     }

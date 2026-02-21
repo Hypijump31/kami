@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (Session 25 — WASI HTTP Outgoing + Architecture Extraction)
+
+#### Sprint 1.1 — WASI HTTP Outgoing
+- **`wasmtime-wasi-http`** integrated into `kami-engine`: `HostState` now implements `WasiHttpView`, all WASM tools can make real HTTP outbound requests
+- **Network enforcement at WASI layer**: `send_request()` override checks `net_allow_list` before calling `default_send_request()`; empty list = deny-all
+- **Wildcard hostname matching** in HTTP allow-list (e.g., `*.example.com`)
+- **`tests/fixtures/http-fetch-tool/`**: New WASM fixture making real HTTP GET via `wasi:http/outgoing-handler@0.2.2`
+- **4 new E2E tests** in `kami-runtime/tests/e2e_http.rs`: blocked (empty list), blocked (unlisted host), allowed (local TCP server), wildcard non-match
+
+#### Sprint 1.2 — New crate `kami-mcp`
+- **`kami-mcp` crate** (12th crate): APPLICATION-layer MCP handler extracted from adapter layer
+  - `McpHandler`, `JsonRpcOutput`, and all dispatch logic now live in the correct architectural layer
+  - Fixes ADAPTER→ADAPTER dependency violation (`kami-transport-http` → `kami-transport-stdio`)
+- **`kami-transport-stdio`**: Simplified to pure I/O transport; re-exports `McpHandler` for backward compat
+- **`kami-transport-http`**: Now depends on `kami-mcp` (APPLICATION) instead of `kami-transport-stdio` (ADAPTER)
+
+### Changed (Session 25)
+- `JsonRpcOutput::to_json()` return type changed from `Result<String, TransportError>` to `Result<String, serde_json::Error>` (no longer leaks transport error type into APPLICATION layer)
+- `kami-transport-http` dep graph cleaned: `kami-transport-stdio` removed from both `[dependencies]` and `[dev-dependencies]`
+
 ### Added (Session 24 — Documentation Completion)
 - **`GET /health/ready`** readiness probe endpoint in `kami-transport-http` (completes Annexe B v1.0)
 - **Continue.dev integration guide** in `docs/INTEGRATION.md` (stdio + custom registry, v0.8.0+)

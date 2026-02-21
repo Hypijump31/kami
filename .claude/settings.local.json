@@ -18,7 +18,18 @@
       "Bash(Select-Object -ExpandProperty Lines)",
       "Bash(findstr:*)",
       "Bash(cargo clean:*)",
-      "Bash(Get-Content \"f:\\\\APP\\\\VSCODE\\\\PROJET\\\\KAMI\\\\crates\\\\kami-cli\\\\src\\\\commands\\\\templates.rs\")"
+      "Bash(Get-Content \"f:\\\\APP\\\\VSCODE\\\\PROJET\\\\KAMI\\\\crates\\\\kami-cli\\\\src\\\\commands\\\\templates.rs\")",
+      "Bash(cargo tarpaulin:*)",
+      "Bash(xargs:*)",
+      "Bash(cargo fmt:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(cargo check:*)",
+      "Bash(cargo doc:*)",
+      "Bash(python3 -c \" import re, html from pathlib import Path content = Path\\(''target/doc/wasmtime_wasi_http/trait.WasiHttpView.html''\\).read_text\\(encoding=''utf-8''\\) # Extract trait methods methods = re.findall\\(r''<code[^>]*>.*?</code>'', content[:10000]\\) text = re.sub\\(r''<[^>]+>'', '''', content[:15000]\\) text = html.unescape\\(text\\) # Find trait definition section start = text.find\\(''WasiHttpView''\\) print\\(text[start:start+3000]\\) \")",
+      "Bash(rustup target list:*)",
+      "Bash(cargo search:*)",
+      "Bash(/f/APP/VSCODE/PROJET/KAMI/tests/fixtures/http-fetch-tool/wit/deps/http/package.wit:*)"
     ]
   }
 }

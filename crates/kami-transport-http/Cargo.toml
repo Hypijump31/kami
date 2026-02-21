@@ -8,7 +8,7 @@ description = "HTTP/JSON-RPC transport adapter for KAMI MCP server"
 kami-protocol = { workspace = true }
 kami-runtime = { workspace = true }
 kami-registry = { workspace = true }
-kami-transport-stdio = { workspace = true }
+kami-mcp = { workspace = true }
 axum = { workspace = true }
 tokio = { workspace = true }
 serde = { workspace = true }
@@ -19,7 +19,7 @@ thiserror = { workspace = true }
 [dev-dependencies]
 kami-runtime = { workspace = true }
 kami-store-sqlite = { workspace = true }
-kami-transport-stdio = { workspace = true }
+kami-mcp = { workspace = true }
 tokio = { workspace = true }
 tower = { version = "0.5", features = ["util"] }
 http = "1"

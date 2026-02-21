@@ -9,7 +9,7 @@ use crate::output;
 
 /// Default URL for the community tool registry index.
 const DEFAULT_INDEX_URL: &str =
-    "https://raw.githubusercontent.com/kami-tools/registry/main/index.json";
+    "https://raw.githubusercontent.com/Hypijump31/kami-registry/main/index.json";
 
 /// Search for tools in the remote registry.
 #[derive(Debug, Args)]

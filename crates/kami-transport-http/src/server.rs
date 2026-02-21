@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use tokio::net::TcpListener;
 
-use kami_transport_stdio::McpHandler;
+use kami_mcp::McpHandler;
 
 use crate::error::HttpTransportError;
 use crate::router::{build_router, AppState};
@@ -61,7 +61,7 @@ mod tests {
     use super::*;
     use kami_runtime::{KamiRuntime, RuntimeConfig};
     use kami_store_sqlite::SqliteToolRepository;
-    use kami_transport_stdio::McpHandler;
+    use kami_mcp::McpHandler;
 
     fn make_handler() -> Arc<McpHandler> {
         let repo = Arc::new(SqliteToolRepository::open_in_memory().expect("in-memory db"));

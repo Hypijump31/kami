@@ -1,0 +1,17 @@
+package kami:tool@0.1.0;
+
+/// Host functions provided to guest tools.
+
+interface host {
+    /// Log a message from the guest.
+    log: func(level: log-level, message: string);
+
+    /// Log levels.
+    enum log-level {
+        trace,
+        debug,
+        info,
+        warn,
+        error,
+    }
+}

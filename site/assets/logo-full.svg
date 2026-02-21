@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 60" width="260" height="60">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="t" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="60%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+  </defs>
+  <!-- Icon -->
+  <rect x="0" y="10" width="40" height="40" rx="10" fill="url(#g)"/>
+  <text x="20" y="34" dominant-baseline="middle" text-anchor="middle"
+        font-family="Inter, -apple-system, sans-serif" font-weight="800" font-size="18" fill="white"
+        letter-spacing="-0.5">K</text>
+  <!-- Wordmark -->
+  <text x="52" y="40" font-family="Inter, -apple-system, sans-serif" font-weight="800"
+        font-size="32" fill="url(#t)" letter-spacing="-1">KAMI</text>
+</svg>

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KAMI — Secure WASM Tools for AI Agents</title>
+  <meta name="description" content="KAMI is a secure WASM tool orchestrator that lets AI agents run sandboxed plugins via the Model Context Protocol (MCP). Install tools in seconds, run them anywhere.">
+  <meta name="keywords" content="KAMI, WASM, WebAssembly, MCP, AI tools, plugin, sandbox, security, Rust">
+  <meta property="og:title" content="KAMI — Secure WASM Tools for AI Agents">
+  <meta property="og:description" content="Run sandboxed WASM tools from any AI agent. Secure by default, fast by design.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hypijump31.github.io/kami/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="assets/logo.png" type="image/png">
+</head>
+<body>
+
+  <!-- ========== NAVIGATION ========== -->
+  <nav class="nav">
+    <div class="container nav__inner">
+      <a href="#" class="nav__brand">
+        <img src="assets/logo.png" alt="KAMI logo">
+        <span>KAMI</span>
+      </a>
+      <ul class="nav__links" id="nav-links">
+        <li><a href="#how-it-works">How it works</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#code">Plugin SDK</a></li>
+        <li><a href="#integrations">Integrations</a></li>
+        <li><a href="plugins/">Plugins</a></li>
+        <li><a href="https://github.com/Hypijump31/kami/blob/main/docs/GETTING_STARTED.md">Docs</a></li>
+        <li>
+          <a href="https://github.com/Hypijump31/kami" class="nav__cta">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            GitHub
+          </a>
+        </li>
+      </ul>
+      <button class="nav__mobile-toggle" id="nav-toggle" aria-label="Toggle navigation">☰</button>
+    </div>
+  </nav>
+
+  <!-- ========== HERO ========== -->
+  <section class="hero">
+    <div class="glow-orb glow-orb--purple hero__glow-1"></div>
+    <div class="glow-orb glow-orb--cyan hero__glow-2"></div>
+
+    <div class="container">
+      <div class="hero__badge">
+        <span class="hero__badge-dot"></span>
+        Open Source — MIT License
+      </div>
+
+      <h1 class="hero__title">
+        Run <span class="gradient-text">secure WASM tools</span><br>
+        from any AI agent
+      </h1>
+
+      <p class="hero__subtitle">
+        KAMI is a sandboxed plugin orchestrator for AI agents.
+        Install tools in seconds, run them safely, expose them via MCP.
+      </p>
+
+      <div class="hero__actions">
+        <a href="https://github.com/Hypijump31/kami/blob/main/docs/GETTING_STARTED.md" class="btn btn--primary">
+          Get Started
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a href="plugins/" class="btn btn--outline">
+          Browse Plugins
+        </a>
+      </div>
+
+      <div class="hero__install" id="install-cmd" title="Click to copy">
+        <span><span class="prompt">$</span> <code>curl -sSf https://kami.dev/install.sh | sh</code></span>
+        <span class="hero__install-copy" id="copy-feedback">📋 copy</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== HOW IT WORKS ========== -->
+  <section class="steps" id="how-it-works">
+    <div class="container">
+      <div class="section-header animate-in">
+        <span class="section-label">How it works</span>
+        <h2 class="section-title">From zero to AI-powered tools<br>in <span class="gradient-text">30 seconds</span></h2>
+      </div>
+
+      <div class="steps__grid">
+        <div class="step-card animate-in">
+          <div class="step-card__number">1</div>
+          <h3 class="step-card__title">Install KAMI</h3>
+          <p class="step-card__desc">
+            Download a single binary. No runtime dependencies, no Docker, no configuration files.
+          </p>
+          <div class="step-card__code">
+            <span class="cmd">curl</span> <span class="flag">-sSf</span> https://kami.dev/install.sh | <span class="cmd">sh</span>
+          </div>
+        </div>
+
+        <div class="step-card animate-in">
+          <div class="step-card__number">2</div>
+          <h3 class="step-card__title">Install plugins</h3>
+          <p class="step-card__desc">
+            Browse the registry and install tools with one command. From GitHub, URL, or local directory.
+          </p>
+          <div class="step-card__code">
+            <span class="cmd">kami</span> <span class="arg">install</span> Hypijump31/kami-echo@v1.0.0
+          </div>
+        </div>
+
+        <div class="step-card animate-in">
+          <div class="step-card__number">3</div>
+          <h3 class="step-card__title">Connect your AI</h3>
+          <p class="step-card__desc">
+            Start the MCP server. Claude, Cursor, Continue.dev — they discover your tools automatically.
+          </p>
+          <div class="step-card__code">
+            <span class="cmd">kami</span> <span class="arg">serve</span> <span class="flag">--transport</span> stdio
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FEATURES ========== -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-header animate-in">
+        <span class="section-label">Features</span>
+        <h2 class="section-title">Built for <span class="gradient-text">security</span> and <span class="gradient-text">speed</span></h2>
+        <p class="section-subtitle">Every plugin runs in a WASM sandbox with deny-all defaults. No surprises.</p>
+      </div>
+
+      <div class="features__grid">
+        <div class="feature-card animate-in">
+          <span class="feature-card__icon">🔒</span>
+          <h3 class="feature-card__title">Deny-All Security</h3>
+          <p class="feature-card__desc">
+            No network, no filesystem, no env vars — unless explicitly declared. 8-layer isolation with capability-based permissions.
+          </p>
+        </div>
+
+        <div class="feature-card animate-in">
+          <span class="feature-card__icon">⚡</span>
+          <h3 class="feature-card__title">Instant Execution</h3>
+          <p class="feature-card__desc">
+            Pre-compiled WASM components with warm instance pool. Sub-millisecond startup after first compilation.
+          </p>
+        </div>
+
+        <div class="feature-card animate-in">
+          <span class="feature-card__icon">🔌</span>
+          <h3 class="feature-card__title">MCP Native</h3>
+          <p class="feature-card__desc">
+            Full Model Context Protocol support over stdio and HTTP. Works with Claude Desktop, Cursor, Continue.dev, LangChain.
+          </p>
+        </div>
+
+        <div class="feature-card animate-in">
+          <span class="feature-card__icon">📦</span>
+          <h3 class="feature-card__title">One-Command Install</h3>
+          <p class="feature-card__desc">
+            Install plugins from GitHub releases, URLs, or local paths. Automatic SHA-256 integrity verification.
+          </p>
+        </div>
+
+        <div class="feature-card animate-in">
+          <span class="feature-card__icon">✍️</span>
+          <h3 class="feature-card__title">Ed25519 Signing</h3>
+          <p class="feature-card__desc">
+            Cryptographic plugin signatures for provable authorship and tamper detection. Trust, verified.
+          </p>
+        </div>
+
+        <div class="feature-card animate-in">
+          <span class="feature-card__icon">🛠️</span>
+          <h3 class="feature-card__title">Simple SDK</h3>
+          <p class="feature-card__desc">
+            Write a function, add a macro, build. The kami-guest SDK handles all the WASM Component Model plumbing.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== CODE EXAMPLE ========== -->
+  <section class="code-section" id="code">
+    <div class="container">
+      <div class="code-section__inner">
+        <div class="code-section__text animate-in">
+          <span class="section-label">Plugin SDK</span>
+          <h2>Build a plugin in <span class="gradient-text">10 lines</span></h2>
+          <p>
+            Write a Rust function, declare your inputs, compile to WASM.
+            The SDK handles serialization, error propagation, and WIT bindings.
+          </p>
+          <ul class="code-section__list">
+            <li>JSON in, JSON out — type-safe with serde</li>
+            <li>Zero boilerplate via <code>kami_tool!</code> macro</li>
+            <li>Built-in helpers: <code>parse_input</code>, <code>to_output</code></li>
+            <li>One-command build: <code>cargo build --target wasm32-wasip2</code></li>
+            <li>Test locally before publishing</li>
+          </ul>
+        </div>
+
+        <div class="code-window animate-in">
+          <div class="code-window__header">
+            <span class="code-window__dot"></span>
+            <span class="code-window__dot"></span>
+            <span class="code-window__dot"></span>
+            <span class="code-window__filename">src/lib.rs</span>
+          </div>
+          <div class="code-window__body">
+<pre><span class="kw">use</span> kami_guest::{<span class="fn">abi</span>::<span class="fn">parse_input</span>, <span class="fn">abi</span>::<span class="fn">to_output</span>, <span class="mac">kami_tool</span>};
+<span class="kw">use</span> serde::{<span class="ty">Deserialize</span>, <span class="ty">Serialize</span>};
+
+<span class="attr">#[derive(Deserialize)]</span>
+<span class="kw">struct</span> <span class="ty">Input</span> { name: <span class="ty">String</span> }
+
+<span class="attr">#[derive(Serialize)]</span>
+<span class="kw">struct</span> <span class="ty">Output</span> { greeting: <span class="ty">String</span> }
+
+<span class="kw">fn</span> <span class="fn">handle</span>(input: &amp;<span class="ty">str</span>) -&gt; <span class="ty">Result</span>&lt;<span class="ty">String</span>, <span class="ty">String</span>&gt; {
+    <span class="kw">let</span> args: <span class="ty">Input</span> = <span class="fn">parse_input</span>(input)?;
+    <span class="fn">to_output</span>(&amp;<span class="ty">Output</span> {
+        greeting: <span class="mac">format!</span>(<span class="str">"Hello, {}!"</span>, args.name),
+    })
+}
+
+<span class="mac">kami_tool!</span> {
+    name: <span class="str">"dev.myorg.greet"</span>,
+    version: <span class="str">"1.0.0"</span>,
+    description: <span class="str">"A friendly greeting tool"</span>,
+    handler: handle,
+}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== INTEGRATIONS ========== -->
+  <section class="integrations" id="integrations">
+    <div class="container">
+      <div class="section-header animate-in">
+        <span class="section-label">Integrations</span>
+        <h2 class="section-title">Works with your <span class="gradient-text">favorite tools</span></h2>
+        <p class="section-subtitle">Start the MCP server and your AI agent discovers KAMI tools automatically.</p>
+      </div>
+
+      <div class="integrations__logos animate-in">
+        <div class="integration-item">
+          <div class="integration-item__icon">🤖</div>
+          <span class="integration-item__name">Claude Desktop</span>
+        </div>
+        <div class="integration-item">
+          <div class="integration-item__icon">⌨️</div>
+          <span class="integration-item__name">Cursor</span>
+        </div>
+        <div class="integration-item">
+          <div class="integration-item__icon">🔄</div>
+          <span class="integration-item__name">Continue.dev</span>
+        </div>
+        <div class="integration-item">
+          <div class="integration-item__icon">🔗</div>
+          <span class="integration-item__name">LangChain</span>
+        </div>
+        <div class="integration-item">
+          <div class="integration-item__icon">🌐</div>
+          <span class="integration-item__name">HTTP/SSE</span>
+        </div>
+        <div class="integration-item">
+          <div class="integration-item__icon">📡</div>
+          <span class="integration-item__name">Any MCP Client</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== PLUGIN CATALOG PREVIEW ========== -->
+  <section class="catalog" id="plugins">
+    <div class="container">
+      <div class="section-header animate-in">
+        <span class="section-label">Plugin Registry</span>
+        <h2 class="section-title">Discover <span class="gradient-text">community plugins</span></h2>
+        <p class="section-subtitle">Install tools built by the community. Or publish your own.</p>
+      </div>
+
+      <div class="catalog__grid" id="catalog-grid">
+        <!-- Filled by JS from index.json -->
+        <div class="catalog__empty">Loading plugins from registry...</div>
+      </div>
+
+      <div class="catalog__browse">
+        <a href="plugins/" class="btn btn--outline">Browse all plugins →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== CTA ========== -->
+  <section class="cta">
+    <div class="glow-orb glow-orb--purple cta__glow"></div>
+    <div class="container">
+      <h2>Ready to <span class="gradient-text">build something</span>?</h2>
+      <p>Get started in minutes. Build your first plugin or install existing ones.</p>
+      <div class="cta__actions">
+        <a href="https://github.com/Hypijump31/kami/blob/main/docs/GETTING_STARTED.md" class="btn btn--primary">
+          Read the docs
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a href="https://github.com/Hypijump31/kami/blob/main/docs/TOOL_AUTHOR_GUIDE.md" class="btn btn--outline">
+          Create a plugin
+        </a>
+        <a href="https://github.com/Hypijump31/kami" class="btn btn--outline">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          Star on GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <div class="footer__brand">
+          <a href="#" class="nav__brand">
+            <img src="assets/logo.png" alt="KAMI logo">
+            <span>KAMI</span>
+          </a>
+          <p>Secure WASM tool orchestrator for AI agents. Open source, MIT licensed.</p>
+        </div>
+
+        <div class="footer__col">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="plugins/">Plugins</a></li>
+            <li><a href="#code">SDK</a></li>
+            <li><a href="https://github.com/Hypijump31/kami/releases">Releases</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__col">
+          <h4>Docs</h4>
+          <ul>
+            <li><a href="https://github.com/Hypijump31/kami/blob/main/docs/GETTING_STARTED.md">Getting Started</a></li>
+            <li><a href="https://github.com/Hypijump31/kami/blob/main/docs/TOOL_AUTHOR_GUIDE.md">Plugin Guide</a></li>
+            <li><a href="https://github.com/Hypijump31/kami/blob/main/docs/INTEGRATION.md">Integrations</a></li>
+            <li><a href="https://github.com/Hypijump31/kami/blob/main/docs/SECURITY.md">Security</a></li>
+            <li><a href="https://github.com/Hypijump31/kami/blob/main/docs/ARCHITECTURE.md">Architecture</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__col">
+          <h4>Community</h4>
+          <ul>
+            <li><a href="https://github.com/Hypijump31/kami">GitHub</a></li>
+            <li><a href="https://github.com/Hypijump31/kami-registry">Plugin Registry</a></li>
+            <li><a href="https://github.com/Hypijump31/kami/blob/main/CONTRIBUTING.md">Contributing</a></li>
+            <li><a href="https://github.com/Hypijump31/kami/blob/main/CHANGELOG.md">Changelog</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer__bottom">
+        <span>© 2025 KAMI Project. MIT License.</span>
+        <div class="footer__socials">
+          <a href="https://github.com/Hypijump31/kami" aria-label="GitHub">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

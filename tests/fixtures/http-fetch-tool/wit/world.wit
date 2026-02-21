@@ -1,0 +1,12 @@
+/// HTTP fetch tool world.
+/// Implements kami:tool exports + imports wasi:http for outgoing requests.
+package kami:http-fetch@0.1.0;
+
+world http-fetch-tool {
+    import kami:tool/host@0.1.0;
+    import wasi:http/outgoing-handler@0.2.2;
+    import wasi:http/types@0.2.2;
+    import wasi:io/streams@0.2.2;
+    import wasi:io/poll@0.2.2;
+    export kami:tool/tool@0.1.0;
+}

@@ -1,3 +1,5 @@
+<p align="center"><img src="../site/assets/logo.png" alt="KAMI" height="48"></p>
+
 # KAMI - Security Model
 
 > Comprehensive security documentation for auditors and R&D engineers.

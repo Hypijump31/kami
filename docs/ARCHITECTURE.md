@@ -1,3 +1,5 @@
+<p align="center"><img src="../site/assets/logo.png" alt="KAMI" height="48"></p>
+
 # Architecture Decision Records
 
 ## ADR-001: Hexagonal Architecture

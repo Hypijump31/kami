@@ -8,18 +8,21 @@ members = [
     "crates/kami-sandbox",
     "crates/kami-runtime",
     "crates/kami-store-sqlite",
+    "crates/kami-mcp",
     "crates/kami-transport-stdio",
     "crates/kami-transport-http",
     "crates/kami-config",
     "crates/kami-cli",
     "crates/kami-guest",
 ]
-exclude = ["tests/fixtures/echo-tool"]
+exclude = ["tests/fixtures/echo-tool", "tests/fixtures/http-fetch-tool"]
 
 [workspace.dependencies]
 # WASM Runtime
 wasmtime = "27"
 wasmtime-wasi = "27"
+wasmtime-wasi-http = "27"
+hyper = { version = "1", features = ["client", "http1", "http2"] }
 
 # Async
 tokio = { version = "1", features = ["full"] }
@@ -85,4 +88,5 @@ kami-store-sqlite = { path = "crates/kami-store-sqlite" }
 kami-transport-stdio = { path = "crates/kami-transport-stdio" }
 kami-transport-http = { path = "crates/kami-transport-http" }
 kami-config = { path = "crates/kami-config" }
+kami-mcp = { path = "crates/kami-mcp" }
 kami-guest = { path = "crates/kami-guest" }

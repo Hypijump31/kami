@@ -1,3 +1,5 @@
+<p align="center"><img src="../site/assets/logo.png" alt="KAMI" height="48"></p>
+
 # AI Agent Integration Guide
 
 KAMI exposes tools via the **Model Context Protocol (MCP)** over both

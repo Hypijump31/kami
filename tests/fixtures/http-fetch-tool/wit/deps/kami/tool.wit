@@ -1,0 +1,11 @@
+package kami:tool@0.1.0;
+
+/// Interface that guest tools must implement.
+
+interface tool {
+    /// Execute the tool with JSON arguments, returns JSON result.
+    run: func(input: string) -> result<string, string>;
+
+    /// Returns the tool's metadata as JSON.
+    describe: func() -> string;
+}

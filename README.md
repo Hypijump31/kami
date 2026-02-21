@@ -1,8 +1,8 @@
 <p align="center">
   <br>
-  <strong>KAMI</strong> &mdash; 神
+  <img src="site/assets/logo.png" alt="KAMI" height="60">
   <br>
-  <em>Secure WASM Tool Orchestrator for AI Agents</em>
+  <strong>神</strong> &mdash; Secure WASM Tool Orchestrator for AI Agents
   <br><br>
   <a href="https://github.com/Hypijump31/kami/actions"><img src="https://github.com/Hypijump31/kami/workflows/CI/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>

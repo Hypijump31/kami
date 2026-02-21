@@ -1,3 +1,5 @@
+<p align="center"><img src="../site/assets/logo.png" alt="KAMI" height="48"></p>
+
 # KAMI - Deployment & Operations Guide
 
 > Build, install, configure, and integrate KAMI in production.

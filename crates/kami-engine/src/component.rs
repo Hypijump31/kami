@@ -24,13 +24,20 @@ pub fn load_component_from_file(engine: &Engine, path: &Path) -> Result<Componen
     })
 }
 
-/// Creates a `Linker<HostState>` with WASI async bindings registered.
+/// Creates a `Linker<HostState>` with WASI + WASI HTTP async bindings.
+///
+/// Registers:
+/// - WASI standard interfaces (stdio, filesystem, clocks, etc.)
+/// - WASI HTTP outgoing-handler (for tools that make HTTP requests)
+/// - KAMI host imports (log function)
 ///
 /// This linker is reusable across multiple instantiations.
 pub fn create_linker(engine: &Engine) -> Result<Linker<HostState>, EngineError> {
     let mut linker = Linker::new(engine);
     wasmtime_wasi::add_to_linker_async(&mut linker)
         .map_err(|e| EngineError::Config(format!("WASI linker: {e}")))?;
+    wasmtime_wasi_http::add_only_http_to_linker_async(&mut linker)
+        .map_err(|e| EngineError::Config(format!("WASI HTTP linker: {e}")))?;
     crate::bindings::KamiTool::add_to_linker(&mut linker, |s| s)
         .map_err(|e| EngineError::Config(format!("host linker: {e}")))?;
     Ok(linker)

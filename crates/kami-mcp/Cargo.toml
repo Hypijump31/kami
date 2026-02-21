@@ -1,0 +1,18 @@
+[package]
+name = "kami-mcp"
+version = "0.1.0"
+edition = "2021"
+description = "MCP request dispatch handler (APPLICATION layer)"
+
+[dependencies]
+kami-types = { workspace = true }
+kami-protocol = { workspace = true }
+kami-registry = { workspace = true }
+kami-runtime = { workspace = true }
+async-trait = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+kami-store-sqlite = { workspace = true }

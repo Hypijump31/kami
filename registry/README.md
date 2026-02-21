@@ -11,7 +11,7 @@ on each author's GitHub Releases.
 kami search "json transform"
 
 # Install from this registry
-kami install kami-tools/json-transform@v1.0.0
+kami install Hypijump31/kami-json-transform@v1.0.0
 ```
 
 ## Publishing your tool

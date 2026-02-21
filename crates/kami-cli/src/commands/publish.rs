@@ -11,7 +11,7 @@ use kami_runtime::compute_file_hash;
 
 use crate::output;
 
-const REGISTRY_REPO: &str = "kami-tools/registry";
+const REGISTRY_REPO: &str = "Hypijump31/kami-registry";
 
 /// Publish a tool to the community registry.
 #[derive(Debug, Args)]
