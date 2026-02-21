@@ -59,9 +59,9 @@ impl HttpServer {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use kami_mcp::McpHandler;
     use kami_runtime::{KamiRuntime, RuntimeConfig};
     use kami_store_sqlite::SqliteToolRepository;
-    use kami_mcp::McpHandler;
 
     fn make_handler() -> Arc<McpHandler> {
         let repo = Arc::new(SqliteToolRepository::open_in_memory().expect("in-memory db"));

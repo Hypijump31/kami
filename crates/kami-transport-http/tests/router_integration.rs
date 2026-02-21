@@ -6,9 +6,9 @@ use axum::body::Body;
 use http::Request;
 use tower::ServiceExt;
 
+use kami_mcp::McpHandler;
 use kami_runtime::{KamiRuntime, RuntimeConfig};
 use kami_store_sqlite::SqliteToolRepository;
-use kami_mcp::McpHandler;
 use kami_transport_http::{build_router, AppState};
 
 fn make_state(token: Option<&str>) -> AppState {

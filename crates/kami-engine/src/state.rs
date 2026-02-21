@@ -108,10 +108,7 @@ impl WasiHttpView for HostState {
         request: Request<HyperOutgoingBody>,
         config: OutgoingRequestConfig,
     ) -> HttpResult<HostFutureIncomingResponse> {
-        let host = request
-            .uri()
-            .host()
-            .map_or(String::new(), str::to_string);
+        let host = request.uri().host().map_or(String::new(), str::to_string);
         if !is_http_host_allowed(&host, &self.net_allow_list) {
             tracing::warn!(host = %host, "outgoing HTTP denied by net_allow_list");
             return Err(ErrorCode::ConnectionRefused.into());
