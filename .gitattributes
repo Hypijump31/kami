@@ -1,0 +1,8 @@
+# Mark site as documentation, not project code
+site/** linguist-documentation
+# Mark WIT interface files as documentation
+wit/** linguist-documentation
+tests/fixtures/**/wit/** linguist-documentation
+# Mark generated bindings
+crates/kami-guest/src/bindings.rs linguist-generated
+crates/kami-engine/src/bindings.rs linguist-generated
