@@ -71,7 +71,7 @@
 
   if (installCmd && copyFeedback) {
     installCmd.addEventListener('click', async () => {
-      const cmd = 'curl -sSf https://kami.dev/install.sh | sh';
+      const cmd = 'cargo install --git https://github.com/Hypijump31/KAMI kami-cli';
       try {
         await navigator.clipboard.writeText(cmd);
         copyFeedback.textContent = '✓ copied!';
