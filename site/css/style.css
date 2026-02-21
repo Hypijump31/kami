@@ -378,6 +378,19 @@ code, pre {
   transition: color var(--transition-fast);
 }
 .hero__install:hover .hero__install-copy { color: var(--text-accent); }
+.hero__install-alt {
+  margin-top: var(--space-sm);
+  font-size: var(--fs-sm);
+  color: var(--text-tertiary);
+  text-align: center;
+}
+.hero__install-alt a {
+  color: var(--accent-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color var(--transition-fast);
+}
+.hero__install-alt a:hover { color: var(--cyan); }
 
 /* ============================================
    HOW IT WORKS — 3 Steps
