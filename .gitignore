@@ -3,3 +3,13 @@
 *.pdb
 *.db
 .env
+
+# Internal prompts & AI config
+CLAUDE.md
+INIT_PROMPT.md
+ACTION_PLAN.md
+PROMPT/
+.claude/
+
+# Coverage reports
+tarpaulin-report.*
