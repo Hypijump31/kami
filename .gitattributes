@@ -6,3 +6,11 @@ tests/fixtures/**/wit/** linguist-documentation
 # Mark generated bindings
 crates/kami-guest/src/bindings.rs linguist-generated
 crates/kami-engine/src/bindings.rs linguist-generated
+# Mark reports as generated (not project code)
+tarpaulin-report.html linguist-generated
+tarpaulin-report.json linguist-generated
+# Mark fixture build artifacts as generated
+tests/fixtures/**/target/** linguist-generated
+# Mark config/schema files as not project code
+registry/** linguist-documentation
+.claude/** linguist-generated
