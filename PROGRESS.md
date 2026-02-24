@@ -468,6 +468,20 @@ All 6 phases of the KAMI roadmap are implemented:
 - **Registry**: 11 tools installed (10 seed plugins + echo)
 - **Workspace tests**: 448 passing, 0 failures — no regressions
 
+### Session 28 (Seed Plugins — Signing & Registry)
+- **Ed25519 keygen**: Keypair generated via `kami keygen --force`
+  - Keys stored at `~/.kami/keys/` (public + secret)
+  - Public key: `6cd878f91272444016df3548e4149b1ab64984ed724b5752ab533082e4af0fd5`
+- **Plugin signing**: 10/10 plugins signed via `kami sign`
+  - Each plugin's WASM binary signed with Ed25519 over SHA-256 hash
+  - Consistent `signer_public_key` across all 10
+- **Registry entries**: 10/10 entries generated via `kami publish --json`
+- **`registry/index.json`**: Updated from 3 placeholder entries to 13 entries
+  - 3 examples (echo, hello-world, http-fetch)
+  - 10 signed seed plugins with SHA-256 hashes + Ed25519 signatures
+- **Tracking**: `plugins_seed_tracking.md` → 80/80 steps = 100% ✅
+- **Pipeline complète** : Code → Tests → Clippy → Build → Install → Exec → Sign → Registry ✅
+
 ## Future Enhancements
 - [x] CI/CD pipeline (GitHub Actions + cargo-audit + coverage) ✅
 - [x] WASM SHA-256 integrity verification at install and exec ✅
