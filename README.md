@@ -9,6 +9,7 @@
   <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Rust-1.75+-orange.svg" alt="Rust"></a>
   <a href="https://modelcontextprotocol.io/"><img src="https://img.shields.io/badge/Protocol-MCP-green.svg" alt="MCP"></a>
   <a href="https://discord.gg/Ms9yxD2d5c"><img src="https://img.shields.io/badge/Discord-Join%20us-5865F2?logo=discord&logoColor=white" alt="Discord"></a>
+  <a href="https://hypijump31.github.io/KAMI/"><img src="https://img.shields.io/badge/Website-hypijump31.github.io%2FKAMI-8A2BE2" alt="Website"></a>
 </p>
 
 ---
