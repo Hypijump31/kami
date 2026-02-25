@@ -17,3 +17,7 @@ PLUGINS/
 
 # Coverage reports
 tarpaulin-report.*
+
+# VS Code Copilot temp files
+tmpclaude-*
+nul
