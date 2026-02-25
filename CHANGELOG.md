@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [1.1.0] - 2026-02-25
+
 ### Added (Session 25 — WASI HTTP Outgoing + Architecture Extraction)
 
 #### Sprint 1.1 — WASI HTTP Outgoing
@@ -315,3 +319,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `kami-cli`: `--input-file` / `-f` flag on `run` and `exec` commands for JSON file input
 - `kami-cli`: Support for stdin input via `--input-file -` (pipe JSON from another command)
 - `kami-cli`: JSON validation on file/stdin input before execution
+
+[Unreleased]: https://github.com/Hypijump31/KAMI/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/Hypijump31/KAMI/compare/v0.1.0...v1.1.0
+[0.1.0]: https://github.com/Hypijump31/KAMI/releases/tag/v0.1.0
